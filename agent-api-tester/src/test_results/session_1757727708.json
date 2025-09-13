@@ -1,0 +1,130 @@
+{
+  "session_id": 1757727708,
+  "start_time": "2025-09-12T22:41:58.554725",
+  "status": "running",
+  "tools_tested": [
+    "createCarrier",
+    "getCarrierById",
+    "updateCarrier",
+    "deleteCarrier"
+  ],
+  "test_results": [
+    {
+      "timestamp": "2025-09-12T22:41:58.554887",
+      "tool_id": "createCarrier",
+      "tool_name": "createCarrier",
+      "inputs": {
+        "name": "Carrier Teste MCP",
+        "legalName": "Carrier Teste MCP",
+        "taxId": "12345678901",
+        "email": "teste@carrier.com",
+        "phone": "11999999999"
+      },
+      "outputs": {
+        "id": 18,
+        "status": "PENDING",
+        "name": "Carrier Teste MCP",
+        "taxId": "12345678901",
+        "legalName": "Carrier Teste MCP",
+        "email": "teste@carrier.com",
+        "phone": "11999999999",
+        "address": null,
+        "fixedCost": null,
+        "costPerKm": null,
+        "costPerDelivery": null,
+        "contiguousDelivery": null,
+        "createdAt": null,
+        "updatedAt": null,
+        "deletedAt": null,
+        "createdBy": null,
+        "updatedBy": null,
+        "deletedBy": null
+      },
+      "success": true,
+      "error": null,
+      "execution_time_ms": 79.5900821685791,
+      "response_time_seconds": 0.0795900821685791,
+      "http_status": 201,
+      "endpoint": "POST /carriers",
+      "test_id": "createCarrier_1757727718554"
+    },
+    {
+      "timestamp": "2025-09-12T22:42:01.030870",
+      "tool_id": "getCarrierById",
+      "tool_name": "getCarrierById",
+      "inputs": {
+        "id": 18
+      },
+      "outputs": {
+        "id": 18,
+        "status": "PENDING",
+        "name": "Carrier Teste MCP",
+        "taxId": "12345678901",
+        "legalName": "Carrier Teste MCP",
+        "email": "teste@carrier.com",
+        "phone": "11999999999",
+        "address": null,
+        "fixedCost": null,
+        "costPerKm": null,
+        "costPerDelivery": null,
+        "contiguousDelivery": null,
+        "createdAt": null,
+        "updatedAt": null,
+        "deletedAt": null,
+        "createdBy": null,
+        "updatedBy": null,
+        "deletedBy": null
+      },
+      "success": true,
+      "error": null,
+      "execution_time_ms": 58.05802345275879,
+      "response_time_seconds": 0.05805802345275879,
+      "http_status": 200,
+      "endpoint": "GET /carriers/{id}",
+      "test_id": "getCarrierById_1757727721030"
+    },
+    {
+      "timestamp": "2025-09-12T22:42:01.117626",
+      "tool_id": "updateCarrier",
+      "tool_name": "updateCarrier",
+      "inputs": {
+        "id": 18,
+        "name": "Carrier Atualizado",
+        "legalName": "Carrier Atualizado",
+        "taxId": "12345678901",
+        "email": "atualizado@carrier.com",
+        "phone": "11988888888"
+      },
+      "outputs": {},
+      "success": true,
+      "error": null,
+      "execution_time_ms": 69.0157413482666,
+      "response_time_seconds": 0.0690157413482666,
+      "http_status": 200,
+      "endpoint": "PUT /carriers/{id}",
+      "test_id": "updateCarrier_1757727721117"
+    },
+    {
+      "timestamp": "2025-09-12T22:42:05.555751",
+      "tool_id": "deleteCarrier",
+      "tool_name": "deleteCarrier",
+      "inputs": {
+        "id": 18
+      },
+      "outputs": {},
+      "success": true,
+      "error": null,
+      "execution_time_ms": 96.01640701293945,
+      "response_time_seconds": 0.09601640701293945,
+      "http_status": 200,
+      "endpoint": "DELETE /carriers/{id}",
+      "test_id": "deleteCarrier_1757727725555"
+    }
+  ],
+  "summary": {},
+  "metadata": {
+    "version": "2.0.0",
+    "created_by": "agent-api-tester",
+    "session_type": "global"
+  }
+}

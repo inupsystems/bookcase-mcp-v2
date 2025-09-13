@@ -1,0 +1,680 @@
+import gradio as gr
+import os
+import json
+import threading
+import time
+import sys
+import subprocess
+from pathlib import Path
+from gradio_cli_utils import (
+    download_swagger_from_url, 
+    save_uploaded_file, 
+    run_cli_generate_tools, 
+    run_cli_list_tools, 
+    run_cli_tests,
+    format_tools_for_display
+)
+
+# Estado global para jobs
+job_status = {"status": "idle", "message": "", "results": None, "monitor_active": False}
+
+# Diretório do projeto
+PROJECT_ROOT = Path(__file__).parent
+mcp_process = None
+
+def get_test_monitor_results():
+    """Obt    # Seção de Exportação de Relatórios
+    with gr.Group():
+        gr.Markdown("## 📋 Exportação de Relatórios")
+        gr.Markdown("""
+        **Gera relatórios profissionais** com base nos testes **reais** executados pelo agent MCP.
+        
+        Os relatórios incluem:
+        • **Estatísticas completas** (sucessos, falhas, tempos de resposta)
+        • **Detalhes de cada execução** (parâmetros, resultados, erros)
+        • **Gráficos visuais** (taxa de sucesso, performance das tools)
+        • **Formato compatível** com ferramentas de CI/CD
+        
+        ⚠️ **Importante**: Execute testes via agent MCP primeiro para ter dados nos relatórios.
+        """)
+        
+        with gr.Row():
+            export_btn = gr.Button("📊 Gerar Relatórios dos Testes Reais", variant="primary", size="lg", scale=2)
+            export_status = gr.Textbox(label="Status da Exportação", lines=8, interactive=False, scale=3)tados do monitor de testes."""
+    try:
+        # Importar aqui para evitar dependências circulares
+        from src.api_agent.test_monitor import TestResultsMonitor
+        
+        # Usar instância global
+        monitor = TestResultsMonitor.get_global_instance()
+        return monitor.get_formatted_results()
+    except Exception as e:
+        return f"❌ Erro ao acessar monitor: {str(e)}"
+
+def start_mcp_server():
+    """Inicia o servidor MCP"""
+    try:
+        global mcp_process
+        if mcp_process and mcp_process.poll() is None:
+            return "⚠️ Servidor já está rodando!", "🟢 Servidor rodando (porta 8000)"
+        
+        # Caminho para o servidor MCP
+        mcp_server_path = os.path.join(PROJECT_ROOT, "src", "api_agent", "mcp_adapter.py")
+        python_exe = sys.executable
+        
+        # Inicia o servidor em background usando -m para executar como módulo
+        mcp_process = subprocess.Popen(
+            [python_exe, "-m", "src.api_agent.mcp_adapter"],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            cwd=PROJECT_ROOT,
+            text=True,
+            bufsize=1
+        )
+        
+        # Aguarda um pouco para o servidor iniciar
+        time.sleep(3)
+        
+        # Verifica se o servidor iniciou
+        if mcp_process.poll() is None:
+            return "✅ Servidor MCP iniciado com sucesso!", "🟢 Servidor rodando (porta 8000)"
+        else:
+            # Captura stdout e stderr
+            stdout, stderr = mcp_process.communicate(timeout=5)
+            error_msg = stderr.strip() if stderr.strip() else stdout.strip() if stdout.strip() else "Processo terminou sem mensagem de erro"
+            return f"❌ Erro ao iniciar servidor: {error_msg}", "🔴 Servidor parado"
+            
+    except subprocess.TimeoutExpired:
+        return "❌ Timeout ao iniciar servidor", "🔴 Servidor parado"
+    except Exception as e:
+        return f"❌ Erro: {str(e)}", "🔴 Servidor parado"
+
+def get_server_status():
+    """Verifica o status atual do servidor MCP"""
+    global mcp_process
+    
+    if mcp_process is None:
+        return "⏹️ Servidor parado"
+    
+    if mcp_process.poll() is None:
+        # Processo ainda está rodando
+        try:
+            # Tenta fazer um health check
+            import requests
+            response = requests.get("http://localhost:8000/health", timeout=2)
+            if response.status_code == 200:
+                return "🟢 Servidor rodando e respondendo (porta 8000)"
+            else:
+                return "🟡 Servidor rodando mas não respondendo corretamente"
+        except:
+            return "🟡 Servidor rodando mas não acessível (porta 8000)"
+    else:
+        # Processo terminou
+        mcp_process = None
+        return "🔴 Servidor parou inesperadamente"
+
+def stop_mcp_server():
+    """Para o servidor MCP"""
+    try:
+        global mcp_process
+        if mcp_process and mcp_process.poll() is None:
+            print("🛑 Tentando parar o servidor MCP...")
+            
+            # Tenta terminar graciosamente
+            mcp_process.terminate()
+            
+            try:
+                # Aguarda até 5 segundos para terminar graciosamente
+                mcp_process.wait(timeout=5)
+                print("✅ Servidor MCP terminado graciosamente")
+            except subprocess.TimeoutExpired:
+                print("⚠️ Timeout - forçando término do servidor...")
+                # Se não terminar graciosamente, força a parada
+                mcp_process.kill()
+                try:
+                    mcp_process.wait(timeout=2)
+                    print("✅ Servidor MCP forçado a parar")
+                except subprocess.TimeoutExpired:
+                    print("❌ Falha ao forçar parada do servidor")
+                    return "❌ Falha ao parar servidor completamente", "⚠️ Status desconhecido"
+            
+            mcp_process = None
+            return "✅ Servidor MCP parado com sucesso!", "⏹️ Servidor parado"
+        else:
+            return "⚠️ Servidor já estava parado!", "⏹️ Servidor parado"
+            
+    except subprocess.TimeoutExpired:
+        return "❌ Timeout ao parar servidor", "⚠️ Status desconhecido"
+    except Exception as e:
+        print(f"❌ Erro ao parar servidor: {str(e)}")
+        return f"❌ Erro ao parar servidor: {str(e)}", "⚠️ Status desconhecido"
+
+def get_server_status():
+    """Verifica o status atual do servidor"""
+    global mcp_process
+    if mcp_process and mcp_process.poll() is None:
+        return "🟢 Servidor rodando (porta 8000)"
+    else:
+        return "⏹️ Servidor parado"
+
+def start_agent_testing():
+    """Inicia o processo de testes via agent."""
+    global job_status
+    
+    if job_status["status"] == "running":
+        return "⚠️ Monitoramento já está ativo!", "🔄 Aguardando...", ""
+    
+    # Verificar se há tools carregadas
+    try:
+        from src.api_agent.tools_storage import ToolsStorage
+        from src.api_agent.mcp_interceptor import enable_monitoring
+        
+        storage = ToolsStorage()
+        tools = storage.load_tools()
+        
+        if not tools:
+            return "❌ Nenhuma tool encontrada! Execute a importação do Swagger primeiro.", "", ""
+        
+        # Ativar monitoramento global
+        enable_monitoring()
+        
+    except Exception as e:
+        return f"❌ Erro ao verificar tools: {str(e)}", "", ""
+    
+    # Iniciar servidor MCP se necessário
+    server_result, process = start_mcp_server()
+    if "Erro" in server_result:
+        return server_result, "", ""
+    
+    # Iniciar monitoramento
+    job_status = {
+        "status": "running", 
+        "message": "🚀 Servidor MCP ativo! Agent pode acessar as tools.", 
+        "results": None,
+        "monitor_active": True,
+        "mcp_process": process
+    }
+    
+    return server_result, "🔄 Monitorando testes do agent...", ""
+
+
+def export_test_reports():
+    """Exporta relatórios em múltiplos formatos usando dados reais do monitor."""
+    try:
+        from src.api_agent.test_monitor import TestResultsMonitor
+        from src.api_agent.professional_reports import ProfessionalReportGenerator
+        
+        monitor = TestResultsMonitor.get_global_instance()
+        
+        # Obter dados da sessão atual
+        current_status = monitor.get_current_status()
+        
+        # Verificar se há dados para gerar relatório
+        if not current_status.get('test_results'):
+            return "⚠️ Nenhum teste foi executado ainda. Execute testes via agent primeiro.\n\n💡 **Como usar**:\n1. Importe o Swagger/OpenAPI\n2. Use as tools MCP no VS Code\n3. Volte aqui e gere o relatório"
+        
+        # Gerar relatórios usando o ProfessionalReportGenerator
+        generator = ProfessionalReportGenerator()
+        
+        # Preparar dados da sessão para o gerador
+        session_data = current_status
+        
+        result_msgs = []
+        
+        try:
+            # Gerar relatório HTML
+            html_path = generator.generate_html_report(session_data)
+            result_msgs.append(f"✅ Relatório HTML: {html_path}")
+        except Exception as e:
+            result_msgs.append(f"❌ Erro HTML: {str(e)}")
+        
+        try:
+            # Gerar relatório JSON
+            json_path = generator.generate_json_report(session_data)
+            result_msgs.append(f"✅ Relatório JSON: {json_path}")
+        except Exception as e:
+            result_msgs.append(f"❌ Erro JSON: {str(e)}")
+        
+        try:
+            # Gerar relatório JUnit XML
+            xml_path = generator.generate_junit_xml(session_data)
+            result_msgs.append(f"✅ Relatório JUnit XML: {xml_path}")
+        except Exception as e:
+            result_msgs.append(f"❌ Erro XML: {str(e)}")
+        
+        # Estatísticas da sessão
+        total_tests = len(session_data.get('test_results', []))
+        successful_tests = len([r for r in session_data.get('test_results', []) if r.get('success', False)])
+        
+        summary = f"""
+📊 **RESUMO DA EXPORTAÇÃO**
+═══════════════════════════════════
+• Total de testes: {total_tests}
+• Sucessos: {successful_tests}
+• Falhas: {total_tests - successful_tests}
+• Taxa de sucesso: {(successful_tests/total_tests*100):.1f}% 
+
+📁 **ARQUIVOS GERADOS:**
+{chr(10).join(result_msgs)}
+
+🔍 **Abra os arquivos HTML no navegador para visualizar o relatório completo.**
+        """
+        
+        return summary.strip()
+        
+    except Exception as e:
+        return f"❌ Erro ao exportar relatórios: {str(e)}\n\n💡 **Dica**: Certifique-se de que testes foram executados via agent MCP primeiro."
+
+
+def get_dashboard_data():
+    """Obtém dados para dashboard em tempo real."""
+    try:
+        from src.api_agent.test_monitor import TestResultsMonitor
+        
+        monitor = TestResultsMonitor.get_global_instance()
+        
+        # Obter estatísticas atuais do monitor
+        current_status = monitor.get_current_status()
+        
+        # Calcular métricas
+        total_tests = len(current_status.get('test_results', []))
+        successful_tests = len([r for r in current_status.get('test_results', []) if r.get('success', False)])
+        failed_tests = total_tests - successful_tests
+        success_rate = (successful_tests / total_tests * 100) if total_tests > 0 else 0
+        tools_tested = len(current_status.get('tools_tested', []))
+        
+        # Calcular tempo médio de execução
+        execution_times = []
+        for result in current_status.get('test_results', []):
+            if result.get('response_time_seconds'):
+                execution_times.append(result['response_time_seconds'] * 1000)  # Converter para ms
+        
+        avg_execution_time = sum(execution_times) / len(execution_times) if execution_times else 0
+        
+        # Formatar para exibição
+        session_info = {
+            'id': current_status.get('session_id', 'N/A'),
+            'status': current_status.get('status', 'inactive'),
+            'start_time': current_status.get('start_time', 'N/A')
+        }
+        
+        # Obter últimos testes para mostrar atividade
+        recent_tests = current_status.get('test_results', [])[-5:]  # Últimos 5 testes
+        recent_activity = ""
+        
+        if recent_tests:
+            recent_activity = "\n\n🔄 **ATIVIDADE RECENTE:**\n"
+            for test in recent_tests:
+                status_icon = "✅" if test.get('success', False) else "❌"
+                tool_name = test.get('tool_name', 'unknown')
+                timestamp = test.get('timestamp', '')[:19] if test.get('timestamp') else ''
+                execution_time = test.get('response_time_seconds', 0) * 1000 if test.get('response_time_seconds') else 0
+                recent_activity += f"• {status_icon} {tool_name} - {timestamp} ({execution_time:.0f}ms)\n"
+        
+        status_text = f"""
+📊 **DASHBOARD EM TEMPO REAL**
+══════════════════════════════════
+
+🆔 **Sessão**: {session_info.get('id', 'N/A')}
+📊 **Status**: {session_info.get('status', 'N/A').upper()}
+🕐 **Iniciado**: {session_info.get('start_time', 'N/A')}
+
+📈 **MÉTRICAS ATUAIS:**
+• Total de testes: {total_tests}
+• ✅ Sucessos: {successful_tests}
+• ❌ Falhas: {failed_tests}
+• 📊 Taxa de sucesso: {success_rate:.1f}%
+• 🔧 Tools testadas: {tools_tested}
+• ⚡ Tempo médio: {avg_execution_time:.2f}ms{recent_activity}
+
+🔄 **Atualizando a cada 5 segundos...**
+        """
+        
+        return status_text.strip()
+        
+    except Exception as e:
+        return f"❌ Erro ao obter dados do dashboard: {str(e)}\n\n💡 **Dica**: Certifique-se de que testes estão sendo executados via agent MCP"
+
+def import_swagger(url, file, base_url):
+    """Importa especificação Swagger via URL ou arquivo"""
+    try:
+        # Validar base_url obrigatória
+        if not base_url or not base_url.strip():
+            return "❌ Base URL é obrigatória. Por favor, informe a URL onde a API está rodando.", "", ""
+        
+        # Configurar variável de ambiente para o MCP server
+        os.environ["API_BASE_URL"] = base_url.strip()
+        
+        if url:
+            temp_file, error = download_swagger_from_url(url)
+            if error:
+                return error, "", ""
+            
+            # Executar CLI para gerar tools
+            output, error = run_cli_generate_tools(temp_file, base_url)
+            if error:
+                return f"Erro ao gerar tools: {error}", "", ""
+            
+            # Listar tools disponíveis
+            tools_output, tools_error = run_cli_list_tools()
+            if tools_error:
+                return f"Sucesso na importação!\n{output}\n\nErro ao listar tools: {tools_error}", "", ""
+            
+            # Formatar tools para exibição
+            formatted_tools = format_tools_for_display(tools_output)
+            
+            return f"Sucesso na importação com Base URL: {base_url}\n{output}", formatted_tools, "✅ Pronto para testes"
+            
+        elif file:
+            temp_file, error = save_uploaded_file(file)
+            if error:
+                return error, "", ""
+            
+            # Executar CLI para gerar tools
+            output, error = run_cli_generate_tools(temp_file, base_url)
+            if error:
+                return f"Erro ao gerar tools: {error}", "", ""
+            
+            # Listar tools disponíveis
+            tools_output, tools_error = run_cli_list_tools()
+            if tools_error:
+                return f"Sucesso na importação!\n{output}\n\nErro ao listar tools: {tools_error}", "", ""
+            
+            # Formatar tools para exibição
+            formatted_tools = format_tools_for_display(tools_output)
+            
+            return f"Sucesso na importação com Base URL: {base_url}\n{output}", formatted_tools, "✅ Pronto para testes"
+        else:
+            return "❌ Informe uma URL ou selecione um arquivo.", "", ""
+            
+    except Exception as e:
+        return f"❌ Erro inesperado: {str(e)}", "", ""
+
+def run_tests_async(tool_name):
+    """Executa testes de forma assíncrona"""
+    global job_status
+    job_status = {"status": "running", "message": "🔄 Executando testes...", "results": None}
+    
+    try:
+        output, error = run_cli_tests(tool_name if tool_name.strip() else None)
+        if error:
+            job_status = {
+                "status": "error", 
+                "message": f"❌ Erro nos testes: {error}", 
+                "results": None
+            }
+        else:
+            job_status = {
+                "status": "completed", 
+                "message": "✅ Testes concluídos com sucesso!", 
+                "results": output
+            }
+    except Exception as e:
+        job_status = {
+            "status": "error", 
+            "message": f"❌ Erro inesperado: {str(e)}", 
+            "results": None
+        }
+
+def start_tests(tool_name):
+    """Inicia testes automáticos"""
+    global job_status
+    
+    if job_status["status"] == "running":
+        return "⚠️ Testes já estão em execução!", "🔄 Aguardando...", ""
+    
+    # Iniciar thread para execução assíncrona
+    thread = threading.Thread(target=run_tests_async, args=(tool_name,))
+    thread.daemon = True
+    thread.start()
+    
+    return "🚀 Testes iniciados!", "🔄 Executando...", ""
+
+def check_test_status():
+    """Verifica status dos testes."""
+    global job_status
+    
+    if job_status["monitor_active"]:
+        # Obter resultados do monitor
+        results = get_test_monitor_results()
+        return "🔄 Monitorando testes do agent...", results
+    else:
+        return job_status["message"], job_status["results"] or ""
+
+def download_results():
+    """Prepara resultados para download"""
+    if job_status["results"]:
+        return job_status["results"]
+    return "Nenhum resultado disponível para download."
+
+# Interface Gradio
+with gr.Blocks(title="Agent API Tester", theme=gr.themes.Soft(), css="""
+/* Textbox backgrounds and text */
+.gr-textbox, .gr-textbox textarea, .gr-textbox input {
+    background: #000 !important;
+    color: #fff !important;
+    border: 1px solid #333 !important;
+}
+
+/* Target specific span elements for labels */
+span[data-testid="block-info"] {
+    background: #000 !important;
+    color: #fff !important;
+    padding: 4px 8px !important;
+    border-radius: 4px !important;
+    font-weight: bold !important;
+    display: inline-block !important;
+}
+
+/* Other labels */
+label, .label {
+    background: #000 !important;
+    color: #fff !important;
+    padding: 4px 8px !important;
+    border-radius: 4px !important;
+    font-weight: bold !important;
+}
+
+/* Override any blue backgrounds */
+.bg-blue-500, .bg-blue-600, .bg-primary {
+    background: #000 !important;
+    color: #fff !important;
+}
+""") as demo:
+    gr.Markdown("# 🤖 Agent API Tester - Interface Gradio")
+    gr.Markdown("""
+    **Importe uma especificação Swagger** via URL ou arquivo JSON para gerar tools MCP e executar testes automáticos.
+    """)
+    
+    # Seção de Importação
+    with gr.Group():
+        gr.Markdown("## 📥 Importação de Swagger")
+        with gr.Row():
+            url_input = gr.Textbox(
+                label="URL da documentação Swagger", 
+                placeholder="https://api.example.com/swagger.json",
+                scale=2
+            )
+            file_input = gr.File(
+                label="Ou selecione arquivo JSON", 
+                file_types=[".json", ".yaml", ".yml"],
+                scale=1
+            )
+        
+        # Campo obrigatório para Base URL da API
+        with gr.Row():
+            base_url_input = gr.Textbox(
+                label="Base URL da API (obrigatório)", 
+                placeholder="http://localhost:8080",
+                info="URL base onde a API está rodando (ex: http://localhost:8080, https://api.exemplo.com)",
+                scale=1
+            )
+        
+        import_btn = gr.Button("📥 Importar Swagger", variant="secondary", size="lg")
+        
+        with gr.Row():
+            import_output = gr.Textbox(label="Resultado da importação", lines=3, interactive=False)
+            tools_output = gr.Textbox(label="Tools disponíveis", lines=3, interactive=False)
+        
+        status_output = gr.Textbox(label="Status", interactive=False)
+    
+    # Seção de Testes
+    with gr.Group():
+        gr.Markdown("## 🚀 Testes via Agent IA")
+        gr.Markdown("""
+        **Fluxo de uso**:
+        1. 📥 Importe uma especificação Swagger acima
+        2. 🚀 Inicie o servidor MCP para disponibilizar as tools
+        3. 🤖 Configure o agent no VS Code para usar o servidor MCP
+        4. 🔄 Os resultados dos testes aparecerão automaticamente aqui""")
+        gr.Markdown(" ")
+        
+        with gr.Row():
+            start_server_btn = gr.Button("🚀 Iniciar Servidor MCP", variant="secondary", size="lg", scale=1)
+            stop_server_btn = gr.Button("🛑 Parar Servidor MCP", variant="secondary", size="lg", scale=1)
+        
+        server_status = gr.Textbox(label="Status do Servidor", interactive=False, value="⏹️ Servidor parado")
+        
+        gr.Markdown("""
+        **Endpoints para o Agent**:
+        - Discovery: `http://localhost:8000/mcp/tools`
+        - Invocation: `http://localhost:8000/mcp/invoke`
+        - Docs: `http://localhost:8000/docs`
+        """)
+    
+    # Seção de Dashboard em Tempo Real
+    with gr.Group():
+        gr.Markdown("## 📊 Dashboard em Tempo Real")
+        gr.Markdown("""
+        **Métricas em Tempo Real**: Estatísticas atualizadas automaticamente dos testes executados pelo agent.
+        
+        **Relatório Detalhado**: Lista completa de todas as execuções de tools MCP com timestamps, 
+        parâmetros usados, resultados e tempos de resposta. Este é o log detalhado de cada teste 
+        realizado pelo agent IA.
+        """)
+        
+        with gr.Row():
+            dashboard_data = gr.Textbox(
+                label="📈 Métricas em Tempo Real", 
+                lines=15, 
+                interactive=False,
+                value="🔄 Aguardando início dos testes..."
+            )
+            test_results = gr.Textbox(
+                label="📋 Relatório Detalhado (Log de Execuções)", 
+                lines=15, 
+                interactive=False,
+                value="🔄 Aguardando testes do agent...\n\n💡 **O que aparece aqui:**\n• Timestamp de cada teste\n• Tool executada\n• Parâmetros enviados\n• Resultado obtido\n• Tempo de resposta\n• Status (sucesso/erro)"
+            )
+        
+        with gr.Row():
+            refresh_btn = gr.Button("🔄 Atualizar Dashboard", variant="primary", size="sm")
+            auto_refresh_checkbox = gr.Checkbox(label="Auto-refresh (5s)", value=False)
+    
+    # Seção de Exportação de Relatórios
+    with gr.Group():
+        gr.Markdown("## 📋 Exportação de Relatórios")
+        gr.Markdown("Exporte relatórios profissionais em múltiplos formatos para integração com ferramentas de CI/CD")
+        
+        with gr.Row():
+            export_btn = gr.Button("� Gerar Relatórios", variant="primary", size="lg", scale=2)
+            export_status = gr.Textbox(label="Status da Exportação", lines=3, interactive=False, scale=3)
+        
+        gr.Markdown("""
+        **Formatos disponíveis**:
+        - 📄 **HTML**: Relatório visual interativo com gráficos
+        - 📊 **JSON**: Dados estruturados para integração
+        - 🔧 **JUnit XML**: Compatível com ferramentas de CI/CD
+        """)
+    
+    # Seção de Configurações Avançadas
+    with gr.Group():
+        gr.Markdown("## ⚙️ Configurações Avançadas")
+        
+        with gr.Row():
+            monitoring_enabled = gr.Checkbox(label="Monitoramento Ativo", value=True)
+            clear_session_btn = gr.Button("🗑️ Limpar Sessão", variant="secondary", size="sm")
+        
+        advanced_settings = gr.Textbox(
+            label="Configurações", 
+            lines=3, 
+            interactive=False,
+            value="✅ Monitoramento global ativo\n✅ Interceptação MCP habilitada\n✅ Relatórios profissionais disponíveis"
+        )
+    
+    # Eventos
+    import_btn.click(
+        import_swagger, 
+        inputs=[url_input, file_input, base_url_input], 
+        outputs=[import_output, tools_output, status_output]
+    )
+    
+    start_server_btn.click(
+        start_mcp_server,
+        inputs=[],
+        outputs=[server_status, server_status]  # Duplicado para compatibilidade
+    )
+    
+    stop_server_btn.click(
+        stop_mcp_server,
+        outputs=[server_status, server_status]  # Duplicado para compatibilidade
+    )
+    
+    refresh_btn.click(
+        lambda: (get_dashboard_data(), get_test_monitor_results()),
+        outputs=[dashboard_data, test_results]
+    )
+    
+    export_btn.click(
+        export_test_reports,
+        outputs=[export_status]
+    )
+    
+    def clear_session():
+        """Limpa a sessão atual."""
+        try:
+            from src.api_agent.test_monitor import TestResultsMonitor
+            TestResultsMonitor.reset_session()
+            return "✅ Sessão limpa com sucesso!"
+        except Exception as e:
+            return f"❌ Erro ao limpar sessão: {str(e)}"
+    
+    clear_session_btn.click(
+        clear_session,
+        outputs=[advanced_settings]
+    )
+    
+    def toggle_monitoring(enabled):
+        """Alterna o monitoramento."""
+        try:
+            from src.api_agent.mcp_interceptor import enable_monitoring, disable_monitoring
+            
+            if enabled:
+                enable_monitoring()
+                return "✅ Monitoramento ativo\n✅ Interceptação MCP habilitada\n✅ Relatórios profissionais disponíveis"
+            else:
+                disable_monitoring()
+                return "❌ Monitoramento desativado\n❌ Interceptação MCP desabilitada\n✅ Relatórios profissionais disponíveis"
+        except Exception as e:
+            return f"❌ Erro: {str(e)}"
+    
+    monitoring_enabled.change(
+        toggle_monitoring,
+        inputs=[monitoring_enabled],
+        outputs=[advanced_settings]
+    )
+    
+    # Auto-refresh opcional
+    def auto_refresh_timer():
+        """Timer para auto-refresh."""
+        import time
+        while True:
+            time.sleep(5)
+            if auto_refresh_checkbox.value:
+                dashboard_data.value = get_dashboard_data()
+                test_results.value = get_test_monitor_results()
+    
+    # Iniciar timer em thread separada seria necessário para auto-refresh real
+
+if __name__ == "__main__":
+    demo.launch(server_name="0.0.0.0", server_port=7861, share=False)

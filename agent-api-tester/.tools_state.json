@@ -1,0 +1,341 @@
+[
+  {
+    "id": "getCarrierById",
+    "name": "Busca carrier por ID",
+    "description": "Endpoint para buscar um carrier pelo ID.",
+    "method": "GET",
+    "path": "/carriers/{id}",
+    "parameters": [
+      {
+        "name": "id",
+        "location": "path",
+        "required": true,
+        "schema": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "description": "ID do carrier",
+        "example": null
+      }
+    ],
+    "request_schema": null,
+    "response_schema": null,
+    "auth": null,
+    "examples": [],
+    "tags": [
+      "carrier-controller"
+    ],
+    "summary": "Busca carrier por ID"
+  },
+  {
+    "id": "updateCarrier",
+    "name": "Atualiza carrier",
+    "description": "Endpoint para atualizar um carrier pelo ID.",
+    "method": "PUT",
+    "path": "/carriers/{id}",
+    "parameters": [
+      {
+        "name": "id",
+        "location": "path",
+        "required": true,
+        "schema": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "description": "ID do carrier",
+        "example": null
+      }
+    ],
+    "request_schema": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "taxId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "legalName": {
+          "type": "string",
+          "minLength": 1
+        },
+        "email": {
+          "type": "string",
+          "minLength": 1
+        },
+        "phone": {
+          "type": "string",
+          "minLength": 1
+        },
+        "address": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "integer",
+                "format": "int64"
+              },
+              "city": {
+                "type": "string"
+              },
+              "state": {
+                "type": "string"
+              },
+              "address": {
+                "type": "string"
+              },
+              "zipCode": {
+                "type": "string"
+              },
+              "neighborhood": {
+                "type": "string"
+              },
+              "number": {
+                "type": "string"
+              },
+              "complement": {
+                "type": "string"
+              },
+              "Description": {
+                "type": "string"
+              },
+              "latitude": {
+                "type": "number",
+                "format": "double"
+              },
+              "longitude": {
+                "type": "number",
+                "format": "double"
+              },
+              "entityId": {
+                "type": "integer",
+                "format": "int64"
+              },
+              "carrierId": {
+                "type": "integer",
+                "format": "int64"
+              }
+            }
+          }
+        },
+        "fixedCost": {
+          "type": "number"
+        },
+        "costPerKm": {
+          "type": "number"
+        },
+        "costPerDelivery": {
+          "type": "number"
+        },
+        "contiguousDelivery": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "email",
+        "legalName",
+        "phone",
+        "taxId"
+      ]
+    },
+    "response_schema": null,
+    "auth": null,
+    "examples": [],
+    "tags": [
+      "carrier-controller"
+    ],
+    "summary": "Atualiza carrier"
+  },
+  {
+    "id": "deleteCarrier",
+    "name": "Remove carrier",
+    "description": "Endpoint para remover um carrier pelo ID.",
+    "method": "DELETE",
+    "path": "/carriers/{id}",
+    "parameters": [
+      {
+        "name": "id",
+        "location": "path",
+        "required": true,
+        "schema": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "description": "ID do carrier",
+        "example": null
+      }
+    ],
+    "request_schema": null,
+    "response_schema": null,
+    "auth": null,
+    "examples": [],
+    "tags": [
+      "carrier-controller"
+    ],
+    "summary": "Remove carrier"
+  },
+  {
+    "id": "createCarrier",
+    "name": "Cria um novo carrier",
+    "description": "Endpoint para criar um novo carrier.",
+    "method": "POST",
+    "path": "/carriers",
+    "parameters": [],
+    "request_schema": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "taxId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "legalName": {
+          "type": "string",
+          "minLength": 1
+        },
+        "email": {
+          "type": "string",
+          "minLength": 1
+        },
+        "phone": {
+          "type": "string",
+          "minLength": 1
+        },
+        "address": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "integer",
+                "format": "int64"
+              },
+              "city": {
+                "type": "string"
+              },
+              "state": {
+                "type": "string"
+              },
+              "address": {
+                "type": "string"
+              },
+              "zipCode": {
+                "type": "string"
+              },
+              "neighborhood": {
+                "type": "string"
+              },
+              "number": {
+                "type": "string"
+              },
+              "complement": {
+                "type": "string"
+              },
+              "Description": {
+                "type": "string"
+              },
+              "latitude": {
+                "type": "number",
+                "format": "double"
+              },
+              "longitude": {
+                "type": "number",
+                "format": "double"
+              },
+              "entityId": {
+                "type": "integer",
+                "format": "int64"
+              },
+              "carrierId": {
+                "type": "integer",
+                "format": "int64"
+              }
+            }
+          }
+        },
+        "fixedCost": {
+          "type": "number"
+        },
+        "costPerKm": {
+          "type": "number"
+        },
+        "costPerDelivery": {
+          "type": "number"
+        },
+        "contiguousDelivery": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "email",
+        "legalName",
+        "phone",
+        "taxId"
+      ]
+    },
+    "response_schema": null,
+    "auth": null,
+    "examples": [],
+    "tags": [
+      "carrier-controller"
+    ],
+    "summary": "Cria um novo carrier"
+  },
+  {
+    "id": "filter",
+    "name": "filter",
+    "description": "GET /carriers/filter",
+    "method": "GET",
+    "path": "/carriers/filter",
+    "parameters": [
+      {
+        "name": "arg0",
+        "location": "query",
+        "required": true,
+        "schema": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "integer",
+              "format": "int64"
+            },
+            "active": {
+              "type": "boolean"
+            },
+            "name": {
+              "type": "string"
+            },
+            "taxId": {
+              "type": "string"
+            },
+            "legalName": {
+              "type": "string"
+            },
+            "createdAt": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "updatedAt": {
+              "type": "string",
+              "format": "date-time"
+            }
+          }
+        },
+        "description": null,
+        "example": null
+      }
+    ],
+    "request_schema": null,
+    "response_schema": null,
+    "auth": null,
+    "examples": [],
+    "tags": [
+      "carrier-controller"
+    ],
+    "summary": null
+  }
+]

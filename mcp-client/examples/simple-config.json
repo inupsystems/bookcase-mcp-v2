@@ -1,0 +1,21 @@
+{
+  "servers": {
+    "simple_http_server": {
+      "command": "python",
+      "args": ["-m", "http.server", "8080"],
+      "type": "http",
+      "host": "localhost",
+      "port": 8080,
+      "timeout": 10000
+    },
+    "echo_server": {
+      "command": "echo",
+      "args": ["Hello from MCP server"],
+      "type": "stdio",
+      "timeout": 5000
+    }
+  },
+  "default_timeout": 15000,
+  "retry_attempts": 2,
+  "tool_cache_ttl": 60
+}

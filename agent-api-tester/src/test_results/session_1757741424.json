@@ -1,0 +1,32 @@
+{
+  "session_id": 1757741424,
+  "start_time": "2025-09-13T02:30:54.684328",
+  "status": "running",
+  "tools_tested": [
+    "getCarrierById"
+  ],
+  "test_results": [
+    {
+      "timestamp": "2025-09-13T02:30:54.684619",
+      "tool_id": "getCarrierById",
+      "tool_name": "getCarrierById",
+      "inputs": {
+        "id": 1
+      },
+      "outputs": {},
+      "success": false,
+      "error": "Error finding carrier",
+      "execution_time_ms": 147.45688438415527,
+      "response_time_seconds": 0.14745688438415527,
+      "http_status": 500,
+      "endpoint": "GET /carriers/{id}",
+      "test_id": "getCarrierById_1757741454684"
+    }
+  ],
+  "summary": {},
+  "metadata": {
+    "version": "2.0.0",
+    "created_by": "agent-api-tester",
+    "session_type": "global"
+  }
+}

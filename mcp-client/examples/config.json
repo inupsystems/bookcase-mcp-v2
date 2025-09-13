@@ -1,0 +1,50 @@
+{
+  "servers": {
+    "memory": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-memory"],
+      "env": {
+        "MEMORY_FILE_PATH": "memory.txt"
+      },
+      "type": "stdio",
+      "timeout": 30000
+    },
+    "sequentialthinking": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-sequential-thinking"],
+      "type": "stdio",
+      "timeout": 30000
+    },
+    "agent-api-tester": {
+      "command": "/home/john/workspace/bookcase-mcp/agent-api-tester/mcp_wrapper.sh",
+      "args": [],
+      "type": "stdio",
+      "env": {
+        "API_BASE_URL": "http://localhost:8881"
+      },
+      "cwd": "/home/john/workspace/bookcase-mcp/agent-api-tester",
+      "timeout": 30000
+    },
+    "docker": {
+      "command": "/home/john/workspace/mcp/docker-mcp/venv/bin/python",
+      "args": ["/home/john/workspace/mcp/docker-mcp/main.py"],
+      "env": {
+        "DOCKER_HOST": "unix:///var/run/docker.sock"
+      },
+      "cwd": "/home/john/workspace/mcp/docker-mcp",
+      "timeout": 30000,
+      "type": "stdio"
+    },
+    "mongo-dev-memory": {
+      "command": "/home/john/workspace/mcp/mongo-dev-memory-mcp/venv/bin/python",
+      "args": ["/home/john/workspace/mcp/mongo-dev-memory-mcp/server.py"],
+      "type": "stdio",
+      "env": {},
+      "timeout": 30000
+    }
+  },
+  "default_timeout": 30000,
+  "retry_attempts": 3,
+  "retry_delay": 1.0,
+  "tool_cache_ttl": 300
+}

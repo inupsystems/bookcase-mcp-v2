@@ -1,0 +1,13 @@
+{
+  "servers": {
+    "test_echo": {
+      "command": "echo",
+      "args": ["Test MCP Server"],
+      "type": "stdio",
+      "timeout": 5000
+    }
+  },
+  "default_timeout": 10000,
+  "retry_attempts": 1,
+  "tool_cache_ttl": 60
+}

@@ -1,0 +1,13 @@
+# Agent System Requirements
+
+# OpenAI SDK for DeepSeek
+openai>=1.0.0
+
+# Gradio for web interface
+gradio>=4.0.0
+
+# Additional dependencies for async operations
+aiofiles>=23.0.0
+
+# JSON handling and utilities
+python-dateutil>=2.8.0

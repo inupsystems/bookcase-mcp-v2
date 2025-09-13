@@ -1,0 +1,4 @@
+mcp>=1.0.0
+pymongo>=4.6.0
+asyncio
+typing-extensions>=4.0.0

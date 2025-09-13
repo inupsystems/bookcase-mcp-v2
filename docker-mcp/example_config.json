@@ -1,0 +1,10 @@
+{
+  "mcpServers": {
+    "docker": {
+      "command": "/home/john/workspace/mcp-server/docker-mcp/venv/bin/python",
+      "args": ["/home/john/workspace/mcp-server/docker-mcp/main.py"],
+      "env": {}
+    }
+  }
+}
+

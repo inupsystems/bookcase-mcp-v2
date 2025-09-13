@@ -1,0 +1,33 @@
+version: '3.8'
+
+services:
+  mongo:
+    image: mongo:7.0
+    container_name: mongo-dev-memory
+    restart: always
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: admin123
+      MONGO_INITDB_DATABASE: dev_memory_db
+    ports:
+      - "27018:27017"
+    networks:
+      - mongo-memory
+
+  mongo-memory-ui:
+    build:
+      context: ./mongo-memory-ui
+    container_name: mongo-memory-ui
+    depends_on:
+      - mongo
+    environment:
+      MONGO_URI: mongodb://admin:admin123@mongo:27017/dev_memory_db?authSource=admin
+    ports:
+      - "7860:7860" 
+    networks:
+      - mongo-memory
+    restart: always
+
+networks:
+  mongo-memory:
+    driver: bridge
