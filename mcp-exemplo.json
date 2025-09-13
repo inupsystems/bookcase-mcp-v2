@@ -18,13 +18,13 @@
 				]
 			},
 			"agent-api-tester": {
-				"command": "/home/john/workspace/bookcase-mcp/agent-api-tester/mcp_wrapper.sh",
+				"command": "/home/john/workspace/bookcase-mcp-v2/agent-api-tester/mcp_wrapper.sh",
 				"args": [],
 				"type": "stdio",
 				"env": {
 					"API_BASE_URL": "http://localhost:8881"
 				},
-				"cwd": "/home/john/workspace/bookcase-mcp/agent-api-tester",
+				"cwd": "/home/john/workspace/bookcase-mcp-v2/agent-api-tester",
 				"timeout": 30000
 			},
 			"docker": {

@@ -1,0 +1,179 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>bookcase-mcp — API Tools Index</title>
+  <style>
+    :root{
+      --bg:#0b0f12;
+      --panel:#0f1418;
+      --muted:#9aa6b2;
+      --accent:#7c5cff;
+      --accent-2:#23d6a5;
+      --card:#0d1114;
+      --glass: rgba(255,255,255,0.03);
+      --glass-2: rgba(255,255,255,0.02);
+      --radius:14px;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;background:linear-gradient(180deg,var(--bg) 0%, #071018 100%);color:#e6eef3;-webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale;
+      padding:28px;
+    }
+    header{
+      display:flex;align-items:center;gap:18px;justify-content:space-between;margin-bottom:22px;
+    }
+    .brand{display:flex;align-items:center;gap:12px}
+    .logo{
+      width:48px;height:48px;border-radius:10px;background:linear-gradient(135deg,var(--accent),#5f8bff);display:flex;align-items:center;justify-content:center;box-shadow:0 6px 18px rgba(92,72,255,0.12);
+      font-weight:700;color:white;font-family:monospace
+    }
+    .title{line-height:1}
+    .title h1{margin:0;font-size:18px}
+    .title p{margin:0;color:var(--muted);font-size:13px}
+
+    .controls{display:flex;gap:12px;align-items:center}
+    .search{
+      background:var(--glass);border:1px solid rgba(255,255,255,0.04);padding:10px 12px;border-radius:12px;display:flex;align-items:center;gap:10px;width:420px;min-width:180px
+    }
+    .search input{background:transparent;border:0;color:inherit;outline:none;width:100%;font-size:14px}
+    .btn{background:linear-gradient(90deg,var(--accent) 0%, #5fb1ff 100%);border:0;padding:10px 14px;border-radius:12px;color:white;font-weight:600;cursor:pointer;box-shadow:0 6px 18px rgba(92,72,255,0.12)}
+    .ghost{background:transparent;border:1px solid rgba(255,255,255,0.04);padding:8px 12px;border-radius:10px;color:var(--muted);cursor:pointer}
+
+    main{display:grid;grid-template-columns:260px 1fr;gap:18px}
+
+    /* sidebar */
+    .sidebar{background:linear-gradient(180deg,var(--panel), #091016);padding:18px;border-radius:16px;height:calc(100vh - 112px);overflow:auto}
+    .sidebar h3{margin:0 0 10px 0;font-size:13px}
+    .nav-item{display:flex;align-items:center;gap:10px;padding:10px;border-radius:10px;color:var(--muted);cursor:pointer}
+    .nav-item:hover{background:var(--glass-2);color:#fff}
+    .tag{background:rgba(255,255,255,0.03);padding:6px 8px;border-radius:8px;font-size:12px}
+
+    /* content */
+    .content{min-height:600px}
+    .panel{background:linear-gradient(180deg,var(--card),#081018);padding:18px;border-radius:16px;margin-bottom:18px}
+    .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px}
+    .card{background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));padding:14px;border-radius:12px;border:1px solid rgba(255,255,255,0.03);display:flex;flex-direction:column;gap:10px;min-height:110px}
+    .card h4{margin:0;font-size:15px}
+    .card p{margin:0;color:var(--muted);font-size:13px}
+    .card .meta{display:flex;justify-content:space-between;align-items:center;margin-top:auto}
+    .small{font-size:12px;color:var(--muted)}
+
+    /* footer */
+    footer{margin-top:8px;color:var(--muted);font-size:13px}
+
+    /* responsive */
+    @media (max-width:900px){
+      main{grid-template-columns:1fr;}
+      .sidebar{height:auto}
+      .search{width:100%}
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="brand">
+      <div class="logo">BC</div>
+      <div class="title"><h1>bookcase-mcp</h1><p>Project Services Index</p></div>
+    </div>
+    <div class="controls">
+      <div class="search" role="search">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden><path d="M21 21l-4.35-4.35" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" opacity="0.8"/><circle cx="11" cy="11" r="6" stroke="currentColor" stroke-width="1.6" opacity="0.8"/></svg>
+        <input id="q" placeholder="Buscar serviços..." />
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <aside class="sidebar">
+      <h3>Serviços</h3>
+      <div class="nav-item" data-filter="all">Todos os serviços <span style="margin-left:auto" class="tag">3</span></div>
+      
+      <h3 style="margin-top:18px">Rápidos</h3>
+      <div style="display:flex;flex-direction:column;gap:10px;margin-top:8px">
+        <a class="nav-item" href="http://0.0.0.0:7860/" target="_blank" style="text-decoration:none;color:inherit">Register - context</a>
+        <a class="nav-item" href="http://0.0.0.0:7861/" target="_blank" style="text-decoration:none;color:inherit">Agent-api-tester</a>
+        <a class="nav-item" href="http://localhost:7862/" target="_blank" style="text-decoration:none;color:inherit">Agent Tester - DeepSeek</a>
+      </div>
+
+    </aside>
+
+    <section class="content">
+      <div class="panel">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:12px">
+          <div>
+            <h2 style="margin:0 0 6px 0">Painel de Serviços</h2>
+            <div style="color:var(--muted);font-size:13px">Clique em qualquer cartão para abrir o serviço correspondente.</div>
+          </div>
+          <div class="small">Última atualização: <strong style="color:var(--accent)">13 Sep 2025</strong></div>
+        </div>
+      </div>
+
+      <div class="grid" id="toolsGrid">
+        <a class="card" href="http://0.0.0.0:7860/" target="_blank" data-type="service" data-name="Register - context">
+          <h4>Register - context</h4>
+          <p>Serviço para registro de contexto.</p>
+          <div class="meta"><span class="small">context, registration</span><span class="tag">Service</span></div>
+        </a>
+
+        <a class="card" href="http://0.0.0.0:7861/" target="_blank" data-type="tester" data-name="Agent-api-tester">
+          <h4>Agent-api-tester</h4>
+          <p>Interface Gradio para testar a API do agente.</p>
+          <div class="meta"><span class="small">gradio, api, test</span><span class="tag">Tester</span></div>
+        </a>
+
+        <a class="card" href="http://localhost:7862/" target="_blank" data-type="tester" data-name="Agent Tester - DeepSeek">
+          <h4>Agent Tester - DeepSeek</h4>
+          <p>Interface Gradio para testes com o agente DeepSeek.</p>
+          <div class="meta"><span class="small">gradio, deepseek</span><span class="tag">Tester</span></div>
+        </a>
+      </div>
+
+      <footer>
+        bookcase-mcp • painel estático para indexar serviços do projeto — criado automaticamente.
+      </footer>
+    </section>
+  </main>
+
+  <script>
+    // busca simples (filtra cards por nome e tipo)
+    const q = document.getElementById('q');
+    const cards = Array.from(document.querySelectorAll('#toolsGrid .card'));
+    const navItems = Array.from(document.querySelectorAll('.sidebar .nav-item'));
+
+    function filterCards(term, type){
+      term = (term||'').trim().toLowerCase();
+      cards.forEach(c=>{
+        const name = c.dataset.name.toLowerCase();
+        const t = c.dataset.type;
+        const matchesTerm = !term || name.includes(term) || c.querySelector('p').innerText.toLowerCase().includes(term);
+        const matchesType = !type || type==='all' || t===type;
+        c.style.display = (matchesTerm && matchesType) ? 'flex' : 'none';
+      })
+    }
+
+    q.addEventListener('input', e=> filterCards(e.target.value));
+
+    navItems.forEach(n=> n.addEventListener('click', (e)=>{
+      if (e.currentTarget.hasAttribute('data-filter')) {
+        const f = n.dataset.filter;
+        navItems.forEach(x=> {
+          if (x.hasAttribute('data-filter')) x.style.background='';
+        });
+        n.style.background='rgba(255,255,255,0.02)';
+        filterCards(q.value, f);
+      }
+    }))
+
+    // keyboard shortcut: / to focus search
+    window.addEventListener('keydown', e=>{
+      if(e.key === '/' && (document.activeElement !== q)){
+        e.preventDefault(); q.focus();
+      }
+    })
+  </script>
+</body>
+</html>

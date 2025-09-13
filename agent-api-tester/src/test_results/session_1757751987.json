@@ -1,0 +1,32 @@
+{
+  "session_id": 1757751987,
+  "start_time": "2025-09-13T05:29:11.146939",
+  "status": "running",
+  "tools_tested": [
+    "deleteCarrier"
+  ],
+  "test_results": [
+    {
+      "timestamp": "2025-09-13T05:29:11.147128",
+      "tool_id": "deleteCarrier",
+      "tool_name": "deleteCarrier",
+      "inputs": {
+        "id": 3
+      },
+      "outputs": {},
+      "success": true,
+      "error": null,
+      "execution_time_ms": 177.3514747619629,
+      "response_time_seconds": 0.1773514747619629,
+      "http_status": 200,
+      "endpoint": "DELETE /carriers/{id}",
+      "test_id": "deleteCarrier_1757752151147"
+    }
+  ],
+  "summary": {},
+  "metadata": {
+    "version": "2.0.0",
+    "created_by": "agent-api-tester",
+    "session_type": "global"
+  }
+}

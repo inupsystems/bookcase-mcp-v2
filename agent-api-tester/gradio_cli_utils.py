@@ -56,7 +56,7 @@ def run_cli_generate_tools(swagger_path, base_url=None):
         # Adicionar subcomando e arquivo
         cmd.extend(["ingest", "--file", swagger_path])
         
-        result = subprocess.run(cmd, capture_output=True, text=True, check=True, cwd="/home/john/workspace/bookcase-mcp/agent-api-tester")
+        result = subprocess.run(cmd, capture_output=True, text=True, check=True, cwd="/home/john/workspace/bookcase-mcp-v2/agent-api-tester")
         return result.stdout, None
     except subprocess.CalledProcessError as e:
         return None, f"Erro ao executar CLI: {e.stderr or str(e)}"
@@ -77,7 +77,7 @@ def run_cli_list_tools():
             capture_output=True, 
             text=True, 
             check=True, 
-            cwd="/home/john/workspace/bookcase-mcp/agent-api-tester",
+            cwd="/home/john/workspace/bookcase-mcp-v2/agent-api-tester",
             env=env
         )
         return result.stdout, None
@@ -93,7 +93,7 @@ def run_cli_tests(tool_name=None):
         if tool_name:
             cmd.extend(["--tool", tool_name])
         
-        result = subprocess.run(cmd, capture_output=True, text=True, check=True, cwd="/home/john/workspace/bookcase-mcp/agent-api-tester")
+        result = subprocess.run(cmd, capture_output=True, text=True, check=True, cwd="/home/john/workspace/bookcase-mcp-v2/agent-api-tester")
         return result.stdout, None
     except subprocess.CalledProcessError as e:
         return None, f"Erro ao executar testes: {e.stderr or str(e)}"
