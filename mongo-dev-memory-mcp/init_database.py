@@ -17,6 +17,7 @@ async def init_database():
         existing_collections = set(db.list_collection_names())
 
         required_collections = [
+            "documentacao",      # Documentação de desenvolvimento
             "historico",           # Histórico de desenvolvimento
             "rules",              # Regras de desenvolvimento
             "patterns",           # Padrões de desenvolvimento
@@ -30,8 +31,38 @@ async def init_database():
                 try:
                     db.create_collection(collection_name)
                     print(f"Coleção criada: {collection_name}")
+                    
+                    # Adiciona índices para documentacao
+                    if collection_name == "documentacao":
+                        # 1. Índice de Texto para buscas por palavras-chave
+                        db[collection_name].create_index(
+                            [("chunk_content", "text")],
+                            name="chunk_content_text_index",
+                            weights={"chunk_content": 100},
+                            default_language="portuguese"
+                        )
+                        print("Índice de texto criado para 'chunk_content' em 'documentacao'.")
+                        
+                        # 2. Índice de Vetor para busca por similaridade semântica
+                        try:
+                            db[collection_name].create_index(
+                                [("chunk_embedding", "vector")],
+                                name="chunk_embedding_vector_index",
+                                vectorOptions={"dimensions": 1536, "similarity": "cosine"}
+                            )
+                            print("Índice de vetor criado para 'chunk_embedding' em 'documentacao'.")
+                        except Exception as vector_error:
+                            print(f"Falha ao criar índice de vetor em 'documentacao': {vector_error}. Verifique se está usando MongoDB 7.0 ou superior.")
+                        
+                        # 3. Índice Composto para otimizar busca por software e categoria
+                        db[collection_name].create_index(
+                            [("software.id", 1), ("category", 1)],
+                            name="software_category_index"
+                        )
+                        print("Índice composto criado para 'software.id' e 'category' em 'documentacao'.")
+                    
                     # Adiciona índice de texto para project_context
-                    if collection_name == "project_context":
+                    elif collection_name == "project_context":
                         db[collection_name].create_index(
                             [("context_content", "text")],
                             name="context_content_text_index",
@@ -43,8 +74,44 @@ async def init_database():
                     print(f"Falha ao criar coleção '{collection_name}': {create_error}")
             else:
                 print(f"Coleção já existe: {collection_name}")
-                # Garante que o índice de texto existe mesmo se a coleção já existir
-                if collection_name == "project_context":
+                
+                # Garante que os índices existam mesmo se a coleção já existir
+                if collection_name == "documentacao":
+                    try:
+                        # 1. Índice de Texto para buscas por palavras-chave
+                        db[collection_name].create_index(
+                            [("chunk_content", "text")],
+                            name="chunk_content_text_index",
+                            weights={"chunk_content": 100},
+                            default_language="portuguese"
+                        )
+                        print("Índice de texto criado para 'chunk_content' em 'documentacao'.")
+                    except Exception as idx_error:
+                        print(f"Falha ao criar índice de texto em 'documentacao': {idx_error}")
+                    
+                    try:
+                        # 2. Índice de Vetor para busca por similaridade semântica
+                        db[collection_name].create_index(
+                            [("chunk_embedding", "vector")],
+                            name="chunk_embedding_vector_index",
+                            vectorOptions={"dimensions": 1536, "similarity": "cosine"}
+                        )
+                        print("Índice de vetor criado para 'chunk_embedding' em 'documentacao'.")
+                    except Exception as vector_error:
+                        print(f"Falha ao criar índice de vetor em 'documentacao': {vector_error}. Verifique se está usando MongoDB 7.0 ou superior.")
+                    
+                    try:
+                        # 3. Índice Composto para otimizar busca por software e categoria
+                        db[collection_name].create_index(
+                            [("software.id", 1), ("category", 1)],
+                            name="software_category_index"
+                        )
+                        print("Índice composto criado para 'software.id' e 'category' em 'documentacao'.")
+                    except Exception as compound_error:
+                        print(f"Falha ao criar índice composto em 'documentacao': {compound_error}")
+                
+                # Garante que o índice de texto existe para project_context
+                elif collection_name == "project_context":
                     try:
                         db[collection_name].create_index(
                             [("context_content", "text")],

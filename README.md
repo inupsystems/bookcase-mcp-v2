@@ -46,3 +46,7 @@ cd docker-mcp
 
 A pasta `work-AI` contém arquivos de instruções e contexto para uso do modelo de IA, facilitando a geração de contexto e automação de tarefas inteligentes.
 # bookcase-mcp-v2
+
+
+ python3 -m venv venv
+ source venv/bin/activate

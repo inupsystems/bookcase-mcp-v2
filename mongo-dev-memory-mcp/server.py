@@ -29,7 +29,7 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 # Configuração do MongoDB - Conexão com permissões root
-MONGO_URI = "mongodb://admin:admin123@localhost:27018"
+MONGO_URI = "mongodb://admin:admin123@localhost:27018/?authSource=admin"
 DATABASE_NAME = "dev_memory_db"
 
 class MongoDevMemoryServer:
@@ -636,6 +636,7 @@ class MongoDevMemoryServer:
                 ),
                 
                 # Ferramentas administrativas
+                # Administrativo
                 Tool(
                     name="mongo_backup_collection",
                     description="Cria backup de uma coleção",
@@ -648,6 +649,43 @@ class MongoDevMemoryServer:
                             }
                         },
                         "required": ["collection_name"]
+                    }
+                ),
+                
+                # Ferramentas de busca em documentação de software
+                Tool(
+                    name="search_documentation",
+                    description="Busca documentação de software por texto e filtros opcionais. Utiliza o índice de texto para buscar documentos relevantes na collection software_documentation_chunks. Retorna os chunks mais relevantes para a consulta, que podem ser filtrados por software_id e categoria.",
+                    inputSchema={
+                        "type": "object",
+                        "properties": {
+                            "query": {
+                                "type": "string",
+                                "description": "Consulta textual para buscar na documentação"
+                            },
+                            "software_id": {
+                                "type": "string",
+                                "description": "ID do software para filtrar resultados (opcional)"
+                            },
+                            "category": {
+                                "type": "string",
+                                "description": "Categoria da documentação para filtrar resultados (opcional)"
+                            },
+                            "tag": {
+                                "type": "string",
+                                "description": "Tag específica para filtrar resultados (opcional)"
+                            },
+                            "version": {
+                                "type": "string",
+                                "description": "Versão do software para filtrar resultados (opcional)"
+                            },
+                            "limit": {
+                                "type": "integer",
+                                "description": "Número máximo de resultados a retornar",
+                                "default": 10
+                            }
+                        },
+                        "required": ["query"]
                     }
                 ),
                 Tool(
@@ -1409,6 +1447,86 @@ class MongoDevMemoryServer:
             }
         except (PyMongoError, json.JSONDecodeError) as e:
             return {"success": False, "error": str(e)}
+    
+    # Métodos para busca de documentação de software
+    async def search_documentation(self, query: str, software_id: str = None, category: str = None, tag: str = None, version: str = None, limit: int = 10):
+        """Busca documentação de software por texto e filtros opcionais"""
+        try:
+            # Usar diretamente a coleção 'documentacao' que sabemos que existe
+            collection_name = "documentacao"
+            collection = self.db[collection_name]
+            
+            logger.info(f"Usando coleção: {collection_name} para busca de documentação")
+            
+            # Usar o índice de texto existente chunk_content_text_index
+            # Montar a query de busca textual
+            search_query = {"$text": {"$search": query}}
+            
+            # Adicionar filtros se fornecidos - usar software_category_index quando aplicável
+            if software_id:
+                search_query["software.id"] = software_id
+            
+            if category:
+                search_query["category"] = category
+                
+            if tag:
+                search_query["tags"] = tag
+                
+            if version:
+                search_query["software.version"] = version
+            
+            # Projeção para incluir campos relevantes e estruturados para IA
+            projection = {
+                "_id": 0,
+                "software.id": 1,
+                "software.name": 1,
+                "software.version": 1,
+                "doc_title": 1,
+                "doc_slug": 1,
+                "category": 1,
+                "tags": 1,
+                "chunk_title": 1,
+                "chunk_content": 1,
+                "source.url": 1,
+                "source.lastUpdated": 1,
+                "score": {"$meta": "textScore"}
+            }
+            
+            # Executar a busca com ordenação por relevância usando índice de texto
+            results = list(collection.find(
+                search_query,
+                projection
+            ).sort([("score", {"$meta": "textScore"})]).limit(limit))
+            
+            # Processamento adicional para facilitar consumo por IA
+            enhanced_results = []
+            for doc in results:
+                # Formatar datas para string ISO
+                if "source" in doc and "lastUpdated" in doc["source"]:
+                    doc["source"]["lastUpdated"] = doc["source"]["lastUpdated"].isoformat()
+                
+                # Adicionar contexto composto para facilitar o uso pela IA
+                doc["context_summary"] = f"{doc.get('software', {}).get('name', '')} {doc.get('software', {}).get('version', '')} - {doc.get('doc_title', '')} - {doc.get('chunk_title', '')}"
+                
+                enhanced_results.append(doc)
+            
+            return {
+                "success": True,
+                "query": query,
+                "collection": collection_name,
+                "filters": {
+                    "software_id": software_id,
+                    "category": category,
+                    "tag": tag,
+                    "version": version
+                },
+                "results": enhanced_results,
+                "count": len(enhanced_results),
+                "timestamp": datetime.utcnow().isoformat()
+            }
+        except PyMongoError as e:
+            logger.error(f"Erro na busca de documentação: {e}")
+            return {"success": False, "error": str(e)}
 
 # Instância global do servidor
 mongo_server = MongoDevMemoryServer()
@@ -1577,6 +1695,17 @@ async def handle_call_tool(name: str, arguments: Dict[str, Any]) -> List[TextCon
             result = await mongo_server.restore_collection(
                 arguments["collection_name"],
                 arguments["backup_data"]
+            )
+        
+        # Busca de documentação
+        elif name == "search_documentation":
+            result = await mongo_server.search_documentation(
+                arguments["query"],
+                arguments.get("software_id"),
+                arguments.get("category"),
+                arguments.get("tag"),
+                arguments.get("version"),
+                arguments.get("limit", 10)
             )
         
         else:

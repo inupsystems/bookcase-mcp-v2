@@ -1,0 +1,718 @@
+{
+  "session_id": 1757801707,
+  "start_time": "2025-09-13T19:47:14.686526",
+  "status": "running",
+  "tools_tested": [
+    "filter",
+    "getCarrierById",
+    "createCarrier",
+    "updateCarrier",
+    "deleteCarrier"
+  ],
+  "test_results": [
+    {
+      "timestamp": "2025-09-13T19:47:14.686718",
+      "tool_id": "filter",
+      "tool_name": "filter",
+      "inputs": {
+        "arg0": {
+          "limit": 5
+        }
+      },
+      "outputs": {
+        "content": [
+          {
+            "id": 9,
+            "status": "PENDING",
+            "name": "string",
+            "taxId": "string",
+            "legalName": "string",
+            "email": "string",
+            "phone": "string",
+            "address": null,
+            "fixedCost": 0.0,
+            "costPerKm": 0.0,
+            "costPerDelivery": 0.0,
+            "contiguousDelivery": null,
+            "createdAt": null,
+            "updatedAt": null,
+            "deletedAt": null,
+            "createdBy": null,
+            "updatedBy": null,
+            "deletedBy": null
+          },
+          {
+            "id": 10,
+            "status": "PENDING",
+            "name": "Carrier Test",
+            "taxId": "123456789",
+            "legalName": "Carrier Legal Name",
+            "email": "carrier@example.com",
+            "phone": "11999999999",
+            "address": null,
+            "fixedCost": 100.0,
+            "costPerKm": 2.5,
+            "costPerDelivery": 10.0,
+            "contiguousDelivery": null,
+            "createdAt": null,
+            "updatedAt": null,
+            "deletedAt": null,
+            "createdBy": null,
+            "updatedBy": null,
+            "deletedBy": null
+          },
+          {
+            "id": 11,
+            "status": "PENDING",
+            "name": "Test Carrier MCP",
+            "taxId": "123456787268",
+            "legalName": "Test Carrier Legal Name",
+            "email": "test@carrier.com",
+            "phone": "11999999999",
+            "address": null,
+            "fixedCost": 50.0,
+            "costPerKm": 1.5,
+            "costPerDelivery": 5.0,
+            "contiguousDelivery": null,
+            "createdAt": null,
+            "updatedAt": null,
+            "deletedAt": null,
+            "createdBy": null,
+            "updatedBy": null,
+            "deletedBy": null
+          },
+          {
+            "id": 12,
+            "status": "PENDING",
+            "name": "Carrier Test",
+            "taxId": "987654321",
+            "legalName": "Carrier Legal Name",
+            "email": "carrier@example.com",
+            "phone": "11999999999",
+            "address": null,
+            "fixedCost": 100.0,
+            "costPerKm": 2.5,
+            "costPerDelivery": 10.0,
+            "contiguousDelivery": null,
+            "createdAt": null,
+            "updatedAt": null,
+            "deletedAt": null,
+            "createdBy": null,
+            "updatedBy": null,
+            "deletedBy": null
+          }
+        ],
+        "pageable": {
+          "pageNumber": 0,
+          "pageSize": 20,
+          "sort": {
+            "sorted": true,
+            "unsorted": false,
+            "empty": false
+          },
+          "offset": 0,
+          "paged": true,
+          "unpaged": false
+        },
+        "totalPages": 1,
+        "totalElements": 4,
+        "last": true,
+        "first": true,
+        "size": 20,
+        "number": 0,
+        "sort": {
+          "sorted": true,
+          "unsorted": false,
+          "empty": false
+        },
+        "numberOfElements": 4,
+        "empty": false
+      },
+      "success": true,
+      "error": null,
+      "execution_time_ms": 195.3108310699463,
+      "response_time_seconds": 0.1953108310699463,
+      "http_status": 200,
+      "endpoint": "GET /carriers/filter",
+      "test_id": "filter_1757803634686"
+    },
+    {
+      "timestamp": "2025-09-13T19:47:51.934935",
+      "tool_id": "getCarrierById",
+      "tool_name": "getCarrierById",
+      "inputs": {
+        "id": 9
+      },
+      "outputs": {
+        "id": 9,
+        "status": "PENDING",
+        "name": "string",
+        "taxId": "string",
+        "legalName": "string",
+        "email": "string",
+        "phone": "string",
+        "address": null,
+        "fixedCost": 0.0,
+        "costPerKm": 0.0,
+        "costPerDelivery": 0.0,
+        "contiguousDelivery": null,
+        "createdAt": null,
+        "updatedAt": null,
+        "deletedAt": null,
+        "createdBy": null,
+        "updatedBy": null,
+        "deletedBy": null
+      },
+      "success": true,
+      "error": null,
+      "execution_time_ms": 88.27805519104004,
+      "response_time_seconds": 0.08827805519104004,
+      "http_status": 200,
+      "endpoint": "GET /carriers/{id}",
+      "test_id": "getCarrierById_1757803671934"
+    },
+    {
+      "timestamp": "2025-09-13T19:48:02.350314",
+      "tool_id": "createCarrier",
+      "tool_name": "createCarrier",
+      "inputs": {
+        "name": "Carrier Teste MCP",
+        "legalName": "Carrier Teste MCP",
+        "taxId": "12345678901",
+        "email": "carrier.teste@mcp.com",
+        "phone": "11999999999"
+      },
+      "outputs": {},
+      "success": false,
+      "error": "Error saving carrier",
+      "execution_time_ms": 93.11389923095703,
+      "response_time_seconds": 0.09311389923095703,
+      "http_status": 500,
+      "endpoint": "POST /carriers",
+      "test_id": "createCarrier_1757803682350"
+    },
+    {
+      "timestamp": "2025-09-13T19:52:17.451317",
+      "tool_id": "filter",
+      "tool_name": "filter",
+      "inputs": {
+        "arg0": {}
+      },
+      "outputs": {},
+      "success": false,
+      "error": "Error filtering carrier",
+      "execution_time_ms": 300.4345893859863,
+      "response_time_seconds": 0.30043458938598633,
+      "http_status": 500,
+      "endpoint": "GET /carriers/filter",
+      "test_id": "filter_1757803937451"
+    },
+    {
+      "timestamp": "2025-09-13T19:53:09.051634",
+      "tool_id": "getCarrierById",
+      "tool_name": "getCarrierById",
+      "inputs": {
+        "id": 1
+      },
+      "outputs": {},
+      "success": false,
+      "error": "Error finding carrier",
+      "execution_time_ms": 127.25353240966797,
+      "response_time_seconds": 0.12725353240966797,
+      "http_status": 500,
+      "endpoint": "GET /carriers/{id}",
+      "test_id": "getCarrierById_1757803989051"
+    },
+    {
+      "timestamp": "2025-09-13T19:53:17.098274",
+      "tool_id": "createCarrier",
+      "tool_name": "createCarrier",
+      "inputs": {
+        "name": "Carrier Teste MCP",
+        "legalName": "Carrier Teste MCP",
+        "taxId": "12345678901",
+        "email": "teste@carrier.com",
+        "phone": "11999999999"
+      },
+      "outputs": {
+        "id": 19,
+        "status": "PENDING",
+        "name": "Carrier Teste MCP",
+        "taxId": "12345678901",
+        "legalName": "Carrier Teste MCP",
+        "email": "teste@carrier.com",
+        "phone": "11999999999",
+        "address": null,
+        "fixedCost": null,
+        "costPerKm": null,
+        "costPerDelivery": null,
+        "contiguousDelivery": null,
+        "createdAt": null,
+        "updatedAt": null,
+        "deletedAt": null,
+        "createdBy": null,
+        "updatedBy": null,
+        "deletedBy": null
+      },
+      "success": true,
+      "error": null,
+      "execution_time_ms": 184.82398986816406,
+      "response_time_seconds": 0.18482398986816406,
+      "http_status": 201,
+      "endpoint": "POST /carriers",
+      "test_id": "createCarrier_1757803997098"
+    },
+    {
+      "timestamp": "2025-09-13T19:53:33.747334",
+      "tool_id": "updateCarrier",
+      "tool_name": "updateCarrier",
+      "inputs": {
+        "id": 19,
+        "name": "Carrier Atualizado",
+        "legalName": "Carrier Atualizado",
+        "taxId": "12345678901",
+        "email": "atualizado@carrier.com",
+        "phone": "11988888888"
+      },
+      "outputs": {},
+      "success": true,
+      "error": null,
+      "execution_time_ms": 124.52268600463867,
+      "response_time_seconds": 0.12452268600463867,
+      "http_status": 200,
+      "endpoint": "PUT /carriers/{id}",
+      "test_id": "updateCarrier_1757804013747"
+    },
+    {
+      "timestamp": "2025-09-13T19:53:41.596249",
+      "tool_id": "deleteCarrier",
+      "tool_name": "deleteCarrier",
+      "inputs": {
+        "id": 19
+      },
+      "outputs": {},
+      "success": true,
+      "error": null,
+      "execution_time_ms": 123.33965301513672,
+      "response_time_seconds": 0.12333965301513672,
+      "http_status": 200,
+      "endpoint": "DELETE /carriers/{id}",
+      "test_id": "deleteCarrier_1757804021596"
+    },
+    {
+      "timestamp": "2025-09-13T20:12:58.350256",
+      "tool_id": "createCarrier",
+      "tool_name": "createCarrier",
+      "inputs": {
+        "name": "Carrier Teste MCP",
+        "taxId": "12345678901",
+        "legalName": "Carrier Teste MCP",
+        "email": "carrier.teste.mcp@example.com",
+        "phone": "11999999999"
+      },
+      "outputs": {
+        "id": 22,
+        "status": "PENDING",
+        "name": "Carrier Teste MCP",
+        "taxId": "12345678901",
+        "legalName": "Carrier Teste MCP",
+        "email": "carrier.teste.mcp@example.com",
+        "phone": "11999999999",
+        "address": null,
+        "fixedCost": null,
+        "costPerKm": null,
+        "costPerDelivery": null,
+        "contiguousDelivery": null,
+        "createdAt": null,
+        "updatedAt": null,
+        "createdBy": null,
+        "updatedBy": null
+      },
+      "success": true,
+      "error": null,
+      "execution_time_ms": 376.97362899780273,
+      "response_time_seconds": 0.37697362899780273,
+      "http_status": 201,
+      "endpoint": "POST /carriers",
+      "test_id": "createCarrier_1757805178350"
+    },
+    {
+      "timestamp": "2025-09-13T20:13:18.951739",
+      "tool_id": "filter",
+      "tool_name": "filter",
+      "inputs": {
+        "arg0": {
+          "active": true
+        }
+      },
+      "outputs": {},
+      "success": false,
+      "error": "Error filtering carrier",
+      "execution_time_ms": 147.59230613708496,
+      "response_time_seconds": 0.14759230613708496,
+      "http_status": 500,
+      "endpoint": "GET /carriers/filter",
+      "test_id": "filter_1757805198951"
+    },
+    {
+      "timestamp": "2025-09-13T20:13:30.840423",
+      "tool_id": "updateCarrier",
+      "tool_name": "updateCarrier",
+      "inputs": {
+        "id": 22,
+        "name": "Carrier Atualizado",
+        "legalName": "Carrier Atualizado",
+        "taxId": "12345678901",
+        "email": "carrier.teste.mcp@example.com",
+        "phone": "11999999999"
+      },
+      "outputs": {},
+      "success": true,
+      "error": null,
+      "execution_time_ms": 177.21891403198242,
+      "response_time_seconds": 0.17721891403198242,
+      "http_status": 200,
+      "endpoint": "PUT /carriers/{id}",
+      "test_id": "updateCarrier_1757805210840"
+    },
+    {
+      "timestamp": "2025-09-13T20:13:39.766154",
+      "tool_id": "getCarrierById",
+      "tool_name": "getCarrierById",
+      "inputs": {
+        "id": 22
+      },
+      "outputs": {
+        "id": 22,
+        "status": "PENDING",
+        "name": "Carrier Atualizado",
+        "taxId": "12345678901",
+        "legalName": "Carrier Atualizado",
+        "email": "carrier.teste.mcp@example.com",
+        "phone": "11999999999",
+        "address": null,
+        "fixedCost": null,
+        "costPerKm": null,
+        "costPerDelivery": null,
+        "contiguousDelivery": null,
+        "createdAt": null,
+        "updatedAt": null,
+        "createdBy": null,
+        "updatedBy": null
+      },
+      "success": true,
+      "error": null,
+      "execution_time_ms": 61.54155731201172,
+      "response_time_seconds": 0.06154155731201172,
+      "http_status": 200,
+      "endpoint": "GET /carriers/{id}",
+      "test_id": "getCarrierById_1757805219766"
+    },
+    {
+      "timestamp": "2025-09-13T20:14:09.025915",
+      "tool_id": "deleteCarrier",
+      "tool_name": "deleteCarrier",
+      "inputs": {
+        "id": 22
+      },
+      "outputs": {},
+      "success": true,
+      "error": null,
+      "execution_time_ms": 91.31526947021484,
+      "response_time_seconds": 0.09131526947021484,
+      "http_status": 200,
+      "endpoint": "DELETE /carriers/{id}",
+      "test_id": "deleteCarrier_1757805249025"
+    },
+    {
+      "timestamp": "2025-09-14T03:01:50.458446",
+      "tool_id": "createCarrier",
+      "tool_name": "createCarrier",
+      "inputs": {
+        "name": "Carrier Teste MCP",
+        "legalName": "Carrier Teste MCP",
+        "taxId": "12345678901",
+        "email": "carrier.teste.mcp@example.com",
+        "phone": "11999999999"
+      },
+      "outputs": {},
+      "success": false,
+      "error": "Carrier already exists",
+      "execution_time_ms": 202.54826545715332,
+      "response_time_seconds": 0.20254826545715332,
+      "http_status": 500,
+      "endpoint": "POST /carriers",
+      "test_id": "createCarrier_1757829710458"
+    },
+    {
+      "timestamp": "2025-09-14T03:02:02.610357",
+      "tool_id": "filter",
+      "tool_name": "filter",
+      "inputs": {
+        "arg0": {
+          "taxId": "12345678901"
+        }
+      },
+      "outputs": {
+        "content": [
+          {
+            "id": 23,
+            "status": "PENDING",
+            "name": "Carrier Teste MCP",
+            "taxId": "12345678901",
+            "legalName": "Carrier Teste MCP",
+            "email": "carrier.teste.mcp@example.com",
+            "phone": "11999999999",
+            "address": null,
+            "fixedCost": null,
+            "costPerKm": null,
+            "costPerDelivery": null,
+            "contiguousDelivery": null,
+            "createdAt": "2025-09-13T20:15:23.629407",
+            "updatedAt": "2025-09-14T02:15:40.353822",
+            "createdBy": null,
+            "updatedBy": "system"
+          },
+          {
+            "id": 27,
+            "status": "PENDING",
+            "name": "Logística Veloz Ltda.",
+            "taxId": "12.345.678/0001-99",
+            "legalName": "Logística Veloz e Transportes Ltda.",
+            "email": "contato@logisticaveloz.com.br",
+            "phone": "+5511912345678",
+            "address": [
+              {
+                "id": 1,
+                "city": "São Paulo",
+                "state": "SP",
+                "address": "Avenida Paulista",
+                "zipCode": "01311-000",
+                "neighborhood": "Bela Vista",
+                "number": "1500",
+                "complement": "Conjunto 301",
+                "Description": "Matriz - Próximo ao metrô Consolação",
+                "latitude": -23.5613,
+                "longitude": -46.6565,
+                "entityId": 101,
+                "carrierId": 27
+              }
+            ],
+            "fixedCost": 5000.0,
+            "costPerKm": 2.5,
+            "costPerDelivery": 5.0,
+            "contiguousDelivery": true,
+            "createdAt": "2025-09-14T02:58:01.764438",
+            "updatedAt": "2025-09-14T02:58:01.764438",
+            "createdBy": "system",
+            "updatedBy": "system"
+          }
+        ],
+        "pageable": {
+          "pageNumber": 0,
+          "pageSize": 20,
+          "sort": {
+            "sorted": true,
+            "unsorted": false,
+            "empty": false
+          },
+          "offset": 0,
+          "paged": true,
+          "unpaged": false
+        },
+        "totalElements": 2,
+        "totalPages": 1,
+        "last": true,
+        "first": true,
+        "size": 20,
+        "number": 0,
+        "sort": {
+          "sorted": true,
+          "unsorted": false,
+          "empty": false
+        },
+        "numberOfElements": 2,
+        "empty": false
+      },
+      "success": true,
+      "error": null,
+      "execution_time_ms": 397.2141742706299,
+      "response_time_seconds": 0.3972141742706299,
+      "http_status": 200,
+      "endpoint": "GET /carriers/filter",
+      "test_id": "filter_1757829722610"
+    },
+    {
+      "timestamp": "2025-09-14T03:02:13.816980",
+      "tool_id": "updateCarrier",
+      "tool_name": "updateCarrier",
+      "inputs": {
+        "id": 23,
+        "name": "Carrier Atualizado",
+        "legalName": "Carrier Atualizado",
+        "taxId": "12345678901",
+        "email": "carrier.teste.mcp@example.com",
+        "phone": "11999999999"
+      },
+      "outputs": {},
+      "success": true,
+      "error": null,
+      "execution_time_ms": 522.0699310302734,
+      "response_time_seconds": 0.5220699310302734,
+      "http_status": 200,
+      "endpoint": "PUT /carriers/{id}",
+      "test_id": "updateCarrier_1757829733817"
+    },
+    {
+      "timestamp": "2025-09-14T03:02:56.590272",
+      "tool_id": "filter",
+      "tool_name": "filter",
+      "inputs": {
+        "status": "PENDING"
+      },
+      "outputs": {
+        "content": [
+          {
+            "id": 23,
+            "status": "PENDING",
+            "name": "Carrier Atualizado",
+            "taxId": "12345678901",
+            "legalName": "Carrier Atualizado",
+            "email": "carrier.teste.mcp@example.com",
+            "phone": "11999999999",
+            "address": null,
+            "fixedCost": null,
+            "costPerKm": null,
+            "costPerDelivery": null,
+            "contiguousDelivery": null,
+            "createdAt": null,
+            "updatedAt": "2025-09-14T03:02:13.47908",
+            "createdBy": null,
+            "updatedBy": "system"
+          },
+          {
+            "id": 27,
+            "status": "PENDING",
+            "name": "Logística Veloz Ltda.",
+            "taxId": "12.345.678/0001-99",
+            "legalName": "Logística Veloz e Transportes Ltda.",
+            "email": "contato@logisticaveloz.com.br",
+            "phone": "+5511912345678",
+            "address": [
+              {
+                "id": 1,
+                "city": "São Paulo",
+                "state": "SP",
+                "address": "Avenida Paulista",
+                "zipCode": "01311-000",
+                "neighborhood": "Bela Vista",
+                "number": "1500",
+                "complement": "Conjunto 301",
+                "Description": "Matriz - Próximo ao metrô Consolação",
+                "latitude": -23.5613,
+                "longitude": -46.6565,
+                "entityId": 101,
+                "carrierId": 27
+              }
+            ],
+            "fixedCost": 5000.0,
+            "costPerKm": 2.5,
+            "costPerDelivery": 5.0,
+            "contiguousDelivery": true,
+            "createdAt": "2025-09-14T02:58:01.764438",
+            "updatedAt": "2025-09-14T02:58:01.764438",
+            "createdBy": "system",
+            "updatedBy": "system"
+          }
+        ],
+        "pageable": {
+          "pageNumber": 0,
+          "pageSize": 20,
+          "sort": {
+            "sorted": true,
+            "unsorted": false,
+            "empty": false
+          },
+          "offset": 0,
+          "paged": true,
+          "unpaged": false
+        },
+        "totalElements": 2,
+        "totalPages": 1,
+        "last": true,
+        "first": true,
+        "size": 20,
+        "number": 0,
+        "sort": {
+          "sorted": true,
+          "unsorted": false,
+          "empty": false
+        },
+        "numberOfElements": 2,
+        "empty": false
+      },
+      "success": true,
+      "error": null,
+      "execution_time_ms": 390.073299407959,
+      "response_time_seconds": 0.390073299407959,
+      "http_status": 200,
+      "endpoint": "GET /carriers/filter",
+      "test_id": "filter_1757829776590"
+    },
+    {
+      "timestamp": "2025-09-14T03:03:13.412644",
+      "tool_id": "getCarrierById",
+      "tool_name": "getCarrierById",
+      "inputs": {
+        "id": 23
+      },
+      "outputs": {
+        "id": 23,
+        "status": "PENDING",
+        "name": "Carrier Atualizado",
+        "taxId": "12345678901",
+        "legalName": "Carrier Atualizado",
+        "email": "carrier.teste.mcp@example.com",
+        "phone": "11999999999",
+        "address": null,
+        "fixedCost": null,
+        "costPerKm": null,
+        "costPerDelivery": null,
+        "contiguousDelivery": null,
+        "createdAt": null,
+        "updatedAt": "2025-09-14T03:02:13.47908",
+        "createdBy": null,
+        "updatedBy": "system"
+      },
+      "success": true,
+      "error": null,
+      "execution_time_ms": 219.9406623840332,
+      "response_time_seconds": 0.2199406623840332,
+      "http_status": 200,
+      "endpoint": "GET /carriers/{id}",
+      "test_id": "getCarrierById_1757829793412"
+    },
+    {
+      "timestamp": "2025-09-14T03:03:19.191206",
+      "tool_id": "deleteCarrier",
+      "tool_name": "deleteCarrier",
+      "inputs": {
+        "id": 23
+      },
+      "outputs": {},
+      "success": true,
+      "error": null,
+      "execution_time_ms": 355.74960708618164,
+      "response_time_seconds": 0.35574960708618164,
+      "http_status": 200,
+      "endpoint": "DELETE /carriers/{id}",
+      "test_id": "deleteCarrier_1757829799191"
+    }
+  ],
+  "summary": {},
+  "metadata": {
+    "version": "2.0.0",
+    "created_by": "agent-api-tester",
+    "session_type": "global"
+  }
+}
