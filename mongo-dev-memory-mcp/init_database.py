@@ -43,6 +43,13 @@ async def init_database():
                         )
                         print("Índice de texto criado para 'chunk_content' em 'documentacao'.")
                         
+                        # 1.1. Índice de Texto para chunk_content, doc_title e tags
+                        db[collection_name].create_index(
+                            [("chunk_content", "text"), ("doc_title", "text"), ("tags", 1)],
+                            name="chunk_content_doc_title_tags_text_index"
+                        )
+                        print("Índice de texto criado para 'chunk_content', 'doc_title' e 'tags' em 'documentacao'.")
+
                         # 2. Índice de Vetor para busca por similaridade semântica
                         try:
                             db[collection_name].create_index(
@@ -51,6 +58,13 @@ async def init_database():
                                 vectorOptions={"dimensions": 1536, "similarity": "cosine"}
                             )
                             print("Índice de vetor criado para 'chunk_embedding' em 'documentacao'.")
+                            # 2.1. Índice de Vetor para chunk_embedding com 384 dimensões
+                            db[collection_name].create_index(
+                                [("chunk_embedding", "vector")],
+                                name="chunk_embedding_vector_index_384",
+                                vectorOptions={"dimensions": 384, "similarity": "cosine"}
+                            )
+                            print("Índice de vetor (384) criado para 'chunk_embedding' em 'documentacao'.")
                         except Exception as vector_error:
                             print(f"Falha ao criar índice de vetor em 'documentacao': {vector_error}. Verifique se está usando MongoDB 7.0 ou superior.")
                         
@@ -60,6 +74,13 @@ async def init_database():
                             name="software_category_index"
                         )
                         print("Índice composto criado para 'software.id' e 'category' em 'documentacao'.")
+
+                        # 3.1. Índice Composto para software.id e doc_slug
+                        db[collection_name].create_index(
+                            [("software.id", 1), ("doc_slug", 1)],
+                            name="software_docslug_index"
+                        )
+                        print("Índice composto criado para 'software.id' e 'doc_slug' em 'documentacao'.")
                     
                     # Adiciona índice de texto para project_context
                     elif collection_name == "project_context":
@@ -86,6 +107,12 @@ async def init_database():
                             default_language="portuguese"
                         )
                         print("Índice de texto criado para 'chunk_content' em 'documentacao'.")
+                        # 1.1. Índice de Texto para chunk_content, doc_title e tags
+                        db[collection_name].create_index(
+                            [("chunk_content", "text"), ("doc_title", "text"), ("tags", 1)],
+                            name="chunk_content_doc_title_tags_text_index"
+                        )
+                        print("Índice de texto criado para 'chunk_content', 'doc_title' e 'tags' em 'documentacao'.")
                     except Exception as idx_error:
                         print(f"Falha ao criar índice de texto em 'documentacao': {idx_error}")
                     
@@ -97,6 +124,13 @@ async def init_database():
                             vectorOptions={"dimensions": 1536, "similarity": "cosine"}
                         )
                         print("Índice de vetor criado para 'chunk_embedding' em 'documentacao'.")
+                        # 2.1. Índice de Vetor para chunk_embedding com 384 dimensões
+                        db[collection_name].create_index(
+                            [("chunk_embedding", "vector")],
+                            name="chunk_embedding_vector_index_384",
+                            vectorOptions={"dimensions": 384, "similarity": "cosine"}
+                        )
+                        print("Índice de vetor (384) criado para 'chunk_embedding' em 'documentacao'.")
                     except Exception as vector_error:
                         print(f"Falha ao criar índice de vetor em 'documentacao': {vector_error}. Verifique se está usando MongoDB 7.0 ou superior.")
                     
@@ -107,6 +141,12 @@ async def init_database():
                             name="software_category_index"
                         )
                         print("Índice composto criado para 'software.id' e 'category' em 'documentacao'.")
+                        # 3.1. Índice Composto para software.id e doc_slug
+                        db[collection_name].create_index(
+                            [("software.id", 1), ("doc_slug", 1)],
+                            name="software_docslug_index"
+                        )
+                        print("Índice composto criado para 'software.id' e 'doc_slug' em 'documentacao'.")
                     except Exception as compound_error:
                         print(f"Falha ao criar índice composto em 'documentacao': {compound_error}")
                 

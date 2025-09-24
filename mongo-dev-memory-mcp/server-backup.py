@@ -6,18 +6,9 @@ import logging
 from datetime import datetime
 from typing import Any, Dict, List, Optional, Sequence
 from pymongo import MongoClient
-
 from pymongo.errors import PyMongoError
 import sys
 import os
-import hashlib
-import threading
-import numpy as np
-from scipy.spatial.distance import cosine
-try:
-    from sentence_transformers import SentenceTransformer
-except ImportError:
-    SentenceTransformer = None
 
 from mcp.server import Server
 from mcp.server.models import InitializationOptions
@@ -47,149 +38,9 @@ class MongoDevMemoryServer:
         self.db = None
         self.server = Server("mongo-dev-memory-mcp")
         self._setup_tools()
-        # Embedding model and cache
-        self.embedding_model_name = "all-MiniLM-L6-v2"
-        self.embedding_model = None
-        self.embedding_cache = {}
-        self.embedding_cache_path = os.path.join(os.path.dirname(__file__), "embeddings_cache.json")
-        self._embedding_lock = threading.Lock()
-        self._load_embedding_cache()
-        self._init_embedding_model()
-
-    def _init_embedding_model(self):
-        if SentenceTransformer is not None:
-            try:
-                self.embedding_model = SentenceTransformer(self.embedding_model_name)
-            except Exception as e:
-                logger.error(f"Erro ao carregar modelo de embeddings: {e}")
-                self.embedding_model = None
-        else:
-            logger.warning("sentence-transformers não instalado. Embeddings desabilitados.")
-
-    def _load_embedding_cache(self):
-        if os.path.exists(self.embedding_cache_path):
-            try:
-                with open(self.embedding_cache_path, "r") as f:
-                    self.embedding_cache = json.load(f)
-            except Exception as e:
-                logger.warning(f"Erro ao carregar cache de embeddings: {e}")
-                self.embedding_cache = {}
-        else:
-            self.embedding_cache = {}
-
-    def _save_embedding_cache(self):
-        with self._embedding_lock:
-            try:
-                with open(self.embedding_cache_path, "w") as f:
-                    json.dump(self.embedding_cache, f)
-            except Exception as e:
-                logger.warning(f"Erro ao salvar cache de embeddings: {e}")
-
-    def chunk_text(self, text, max_tokens=256, overlap=32):
-        # Simples chunking por sentenças ou tokens (aqui por palavras)
-        words = text.split()
-        chunks = []
-        i = 0
-        while i < len(words):
-            chunk = words[i:i+max_tokens]
-            chunks.append(' '.join(chunk))
-            i += max_tokens - overlap
-        return chunks
-
-    def generate_embedding(self, text):
-        if not self.embedding_model:
-            raise RuntimeError("Modelo de embeddings não carregado.")
-        text_hash = hashlib.md5(text.encode('utf-8')).hexdigest()
-        with self._embedding_lock:
-            if text_hash in self.embedding_cache:
-                return self.embedding_cache[text_hash]
-        # Gerar embedding
-        embedding = self.embedding_model.encode(text).tolist()
-        with self._embedding_lock:
-            self.embedding_cache[text_hash] = embedding
-            self._save_embedding_cache()
-        return embedding
-
-    def cosine_similarity_search(self, query_embedding, candidates, top_n=5):
-        # candidates: list of dicts with 'chunk_embedding' field
-        scored = []
-        for doc in candidates:
-            emb = doc.get('chunk_embedding')
-            if emb is not None:
-                try:
-                    sim = 1 - cosine(query_embedding, emb)
-                except Exception:
-                    sim = -1
-                scored.append((sim, doc))
-        scored.sort(reverse=True, key=lambda x: x[0])
-        return [doc for sim, doc in scored[:top_n]]
-
+    
     def _setup_tools(self):
         """Configura todas as ferramentas disponíveis no servidor MCP"""
-        # Registro das ferramentas MCP
-        
-        # Registrando a ferramenta insert_documentation
-        @self.server.call_tool()
-        async def handle_insert_documentation(name: str, arguments: Dict[str, Any]) -> List[TextContent]:
-            result = await self.insert_documentation(arguments)
-            return [TextContent(type="text", text=json.dumps(result, indent=2, default=str))]
-
-        @self.server.call_tool()
-        async def handle_search_semantic(name: str, arguments: Dict[str, Any]) -> List[TextContent]:
-            """
-            Tool MCP: search_semantic
-            Entrada: {
-                'query': str,
-                'tags': list (opcional),
-                'category': str (opcional),
-                'top_n': int (opcional)
-            }
-            """
-            try:
-                # Usando o método de classe já implementado
-                query = arguments.get('query')
-                tags = arguments.get('tags')
-                category = arguments.get('category')
-                top_n = arguments.get('top_n', 5)
-                
-                if not query:
-                    return [TextContent(type="text", text=json.dumps({"success": False, "error": "query é obrigatória"}))]
-                    
-                # Gerar embedding da query
-                query_embedding = self.generate_embedding(query)
-                
-                # Recuperar candidatos
-                mongo_query = {}
-                if tags:
-                    mongo_query["tags"] = {"$in": tags}
-                if category:
-                    mongo_query["category"] = category
-                    
-                # Buscar candidatos
-                candidates = list(self.db.documentacao.find(mongo_query, {
-                    "chunk_embedding": 1, 
-                    "doc_title": 1, 
-                    "chunk_title": 1, 
-                    "chunk_content": 1, 
-                    "tags": 1, 
-                    "category": 1, 
-                    "software": 1, 
-                    "doc_slug": 1, 
-                    "embedding_model": 1
-                }).limit(100))
-                
-                # Similaridade
-                results = self.cosine_similarity_search(query_embedding, candidates, top_n=top_n)
-                
-                # Converter ObjectId para string
-                for doc in results:
-                    if '_id' in doc:
-                        doc['_id'] = str(doc['_id'])
-                        
-                return [TextContent(type="text", text=json.dumps({"success": True, "results": results, "count": len(results)}))]
-            except Exception as e:
-                logger.error(f"Erro search_semantic: {e}")
-                return [TextContent(type="text", text=json.dumps({"success": False, "error": str(e)}))]
         
         @self.server.list_tools()
         async def handle_list_tools() -> List[Tool]:
@@ -804,7 +655,7 @@ class MongoDevMemoryServer:
                 # Ferramentas de busca em documentação de software
                 Tool(
                     name="search_documentation",
-                    description="Busca documenta\u00e7\u00e3o de software por texto e filtros opcionais. Utiliza o \u00edndice de texto para buscar documentos relevantes na collection software_documentation_chunks. Combina busca textual com similaridade sem\u00e2ntica via embeddings para retornar os chunks mais relevantes, ranqueados por similaridade sem\u00e2ntica e escore textual. Implementa fallback para busca por embeddings se a busca textual n\u00e3o retornar resultados.",
+                    description="Busca documentação de software por texto e filtros opcionais. Utiliza o índice de texto para buscar documentos relevantes na collection software_documentation_chunks. Retorna os chunks mais relevantes para a consulta, que podem ser filtrados por software_id e categoria.",
                     inputSchema={
                         "type": "object",
                         "properties": {
@@ -1599,67 +1450,6 @@ class MongoDevMemoryServer:
             return {"success": False, "error": str(e)}
     
     # Métodos para busca de documentação de software
-    async def insert_documentation(self, arguments: Dict[str, Any]):
-        """Insere documentação de software na collection documentacao"""
-        try:
-            text = arguments.get('text')
-            doc_title = arguments.get('doc_title')
-            doc_slug = arguments.get('doc_slug')
-            tags = arguments.get('tags', [])
-            category = arguments.get('category')
-            software = arguments.get('software')
-            chunk_title = arguments.get('chunk_title')
-            other_meta = {k: v for k, v in arguments.items() if k not in ['text', 'doc_title', 'doc_slug', 'tags', 'category', 'software', 'chunk_title']}
-            updated_by = arguments.get('updated_by')
-            
-            if not text or not doc_title:
-                return {"success": False, "error": "text e doc_title são obrigatórios"}
-                
-            # Chunking
-            chunks = self.chunk_text(text)
-            now = datetime.utcnow()
-            docs = []
-            
-            for idx, chunk in enumerate(chunks):
-                chunk_embedding = None
-                embedding_model = self.embedding_model_name
-                try:
-                    chunk_embedding = self.generate_embedding(chunk)
-                except Exception as e:
-                    logger.warning(f"Falha ao gerar embedding: {e}")
-                    
-                doc = {
-                    "doc_title": doc_title,
-                    "doc_slug": doc_slug,
-                    "tags": tags,
-                    "category": category,
-                    "software": software,
-                    "chunk_title": chunk_title or f"{doc_title} [chunk {idx+1}]",
-                    "chunk_content": chunk,
-                    "created_at": now,
-                    "updated_at": now,
-                    "embedding_model": embedding_model,
-                    "chunk_embedding": chunk_embedding,
-                }
-                
-                if updated_by:
-                    doc["updated_by"] = updated_by
-                    
-                doc.update(other_meta)
-                docs.append(doc)
-                
-            # Persistência em lote
-            result = self.db.documentacao.insert_many(docs)
-            return {
-                "success": True, 
-                "inserted_ids": [str(_id) for _id in result.inserted_ids], 
-                "chunks": len(docs)
-            }
-            
-        except Exception as e:
-            logger.error(f"Erro insert_documentation: {e}")
-            return {"success": False, "error": str(e)}
-    
     async def search_documentation(self, query: str, software_id: str = None, category: str = None, tag: str = None, version: str = None, limit: int = 10):
         """Busca documentação de software por texto e filtros opcionais"""
         try:
@@ -1669,24 +1459,23 @@ class MongoDevMemoryServer:
             
             logger.info(f"Usando coleção: {collection_name} para busca de documentação")
             
-            # Gerar embedding da query para similaridade semântica
-            try:
-                query_embedding = self.generate_embedding(query)
-            except Exception as e:
-                logger.warning(f"Não foi possível gerar embedding para a query: {e}")
-                query_embedding = None
-                
-            # Base de filtros para a consulta
-            filter_query = {}
+            # Usar o índice de texto existente chunk_content_text_index
+            # Montar a query de busca textual
+            search_query = {"$text": {"$search": query}}
+            
+            # Adicionar filtros se fornecidos - usar software_category_index quando aplicável
             if software_id:
-                filter_query["software.id"] = software_id
+                search_query["software.id"] = software_id
+            
             if category:
-                filter_query["category"] = category
-            if tag:
-                filter_query["tags"] = tag
-            if version:
-                filter_query["software.version"] = version
+                search_query["category"] = category
                 
+            if tag:
+                search_query["tags"] = tag
+                
+            if version:
+                search_query["software.version"] = version
+            
             # Projeção para incluir campos relevantes e estruturados para IA
             projection = {
                 "_id": 0,
@@ -1699,73 +1488,20 @@ class MongoDevMemoryServer:
                 "tags": 1,
                 "chunk_title": 1,
                 "chunk_content": 1,
-                "chunk_embedding": 1,
                 "source.url": 1,
                 "source.lastUpdated": 1,
+                "score": {"$meta": "textScore"}
             }
             
-            # Etapa 1: Realizar busca por índice de texto ($text)
-            text_search_query = {**filter_query, "$text": {"$search": query}}
-            text_search_projection = {**projection, "score": {"$meta": "textScore"}}
-            
-            # Limitar os candidatos iniciais para eficiência
-            candidate_limit = 50  # Limite de candidatos para calcular embeddings
-            
-            text_search_results = list(collection.find(
-                text_search_query, 
-                text_search_projection
-            ).sort([("score", {"$meta": "textScore"})]).limit(candidate_limit))
-            
-            # Se não houver resultados de busca textual, usar fallback por embeddings
-            if not text_search_results and query_embedding is not None:
-                logger.info("Fallback: Realizando busca semântica por embeddings (full scan)")
-                # Buscar todos os documentos que atendem aos filtros para calcular similaridade
-                candidates = list(collection.find(filter_query, projection).limit(candidate_limit))
-                
-                # Calcular similaridade semântica entre a query e os documentos
-                if candidates:
-                    text_search_results = self.cosine_similarity_search(query_embedding, candidates, top_n=limit)
-            
-            final_results = []
-            
-            # Se temos embedding da query e resultados com embeddings, reranquear por similaridade semântica
-            if query_embedding is not None and text_search_results:
-                # Calcular similaridade semântica para cada resultado
-                for doc in text_search_results:
-                    chunk_embedding = doc.get('chunk_embedding')
-                    if chunk_embedding:
-                        try:
-                            # Calcular similaridade: 1 - cosine(query_emb, chunk_emb)
-                            doc['semantic_score'] = 1 - cosine(query_embedding, chunk_embedding)
-                        except Exception as e:
-                            logger.warning(f"Erro ao calcular similaridade: {e}")
-                            doc['semantic_score'] = -1
-                    else:
-                        doc['semantic_score'] = -1
-                        
-                # Ordenar primeiro por similaridade semântica (quando disponível)
-                # e depois por textScore como critério secundário
-                text_search_results.sort(
-                    key=lambda x: (
-                        x.get('semantic_score', -1), 
-                        x.get('score', 0)
-                    ), 
-                    reverse=True
-                )
-                
-                # Limitar ao número solicitado
-                final_results = text_search_results[:limit]
-            else:
-                # Se não temos embeddings, usar apenas os resultados de text search
-                final_results = text_search_results[:limit]
+            # Executar a busca com ordenação por relevância usando índice de texto
+            results = list(collection.find(
+                search_query,
+                projection
+            ).sort([("score", {"$meta": "textScore"})]).limit(limit))
             
             # Processamento adicional para facilitar consumo por IA
             enhanced_results = []
-            for doc in final_results:
-                # Remover embedding antes de retornar (reduzir payload)
-                if 'chunk_embedding' in doc:
-                    del doc['chunk_embedding']
-                
+            for doc in results:
                 # Formatar datas para string ISO
                 if "source" in doc and "lastUpdated" in doc["source"]:
                     doc["source"]["lastUpdated"] = doc["source"]["lastUpdated"].isoformat()
@@ -1787,7 +1523,6 @@ class MongoDevMemoryServer:
                 },
                 "results": enhanced_results,
                 "count": len(enhanced_results),
-                "search_method": "semantic+text" if query_embedding is not None else "text_only",
                 "timestamp": datetime.utcnow().isoformat()
             }
         except PyMongoError as e:
